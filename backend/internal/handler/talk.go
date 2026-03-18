@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"math/rand"
-
 	"cloud.google.com/go/firestore"
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -20,11 +18,13 @@ import (
 type TalkHandler struct {
 	apiv1connect.UnimplementedTalkServiceHandler
 	firestore *firestore.Client
+	ai        *AIClient
 }
 
-func NewTalkHandler(fs *firestore.Client) *TalkHandler {
+func NewTalkHandler(fs *firestore.Client, ai *AIClient) *TalkHandler {
 	return &TalkHandler{
 		firestore: fs,
+		ai:        ai,
 	}
 }
 
@@ -148,6 +148,8 @@ func (h *TalkHandler) StartTalkStream(
 		}
 	}()
 
+	// Cycle through agents
+	agentIdx := 0
 	for remainingCount > 0 {
 		// Wait for 4s with cancellation check
 		select {
@@ -156,42 +158,79 @@ func (h *TalkHandler) StartTalkStream(
 		case <-stopChan:
 			return nil
 		case <-time.After(4 * time.Second):
-			// Proceed to generate message
 		}
 
-		// Re-check status before proceeding
-		if remainingCount <= 0 {
-			break
+		// Refresh talk data to get latest summary and agents
+		doc, err := docRef.Get(ctx)
+		if err != nil {
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to refresh talk: %v", err))
+		}
+		data := doc.Data()
+		topic, _ := data["topic"].(string)
+		agentsData, _ := data["agents"].([]interface{})
+		whiteboard, _ := data["whiteboard"].(map[string]interface{})
+		if whiteboard == nil {
+			whiteboard = map[string]interface{}{
+				"title":   "未定",
+				"summary": "議論はこれから始まります。",
+				"ideas":   []interface{}{},
+			}
 		}
 
-		// Generate dummy message
-		text := generateDummyText()
+		// Cycle through agents
+		selectedAgent := agentsData[agentIdx%len(agentsData)].(map[string]interface{})
+		agentName, _ := selectedAgent["name"].(string)
+		agentDesc, _ := selectedAgent["description"].(string)
+
+		// Fetch recent messages for context (last 10)
+		msgIter := docRef.Collection("messages").OrderBy("createdAt", firestore.Desc).Limit(10).Documents(ctx)
+		msgDocs, err := msgIter.GetAll()
+		recentContext := ""
+		if err == nil {
+			for i := len(msgDocs) - 1; i >= 0; i-- {
+				m := msgDocs[i].Data()
+				u, _ := m["agentName"].(string)
+				if u == "" {
+					u = "ユーザー"
+				}
+				t, _ := m["text"].(string)
+				recentContext += fmt.Sprintf("[%s]: %s\n", u, t)
+			}
+		}
+
+		// AI Response
+		aiRes, err := h.ai.GenerateResponse(ctx, agentName, agentDesc, topic, whiteboard, recentContext)
+		if err != nil {
+			fmt.Printf("AI error: %v\n", err)
+			aiRes = map[string]interface{}{
+				"message": "申し訳ありません、考えがまとまりませんでした。",
+			}
+		}
+
+		messageText, _ := aiRes["message"].(string)
+		summaryText, _ := aiRes["summary"].(string)
+		ideas, _ := aiRes["ideas"].([]interface{})
+
 		msgID := uuid.New().String()
 		msgTime := time.Now()
 
-		// Select a random agent
-		selectedAgent := agentsData[rand.Intn(len(agentsData))].(map[string]interface{})
-		agentName, _ := selectedAgent["name"].(string)
-
 		msgData := map[string]interface{}{
-			"uid":       "ai", // System/AI UID
-			"text":      text,
+			"uid":       "ai",
+			"text":      messageText,
 			"createdAt": msgTime,
 			"talkId":    talkID,
 			"agentName": agentName,
 		}
 
-		// Save to Firestore
 		_, err = docRef.Collection("messages").Doc(msgID).Set(ctx, msgData)
 		if err != nil {
 			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to save reply message: %v", err))
 		}
 
-		// Send to stream
 		if err := stream.Send(&apiv1.Message{
 			Id:        msgID,
 			Uid:       "ai",
-			Text:      text,
+			Text:      messageText,
 			CreatedAt: timestamppb.New(msgTime),
 			TalkId:    talkID,
 			AgentName: agentName,
@@ -200,6 +239,13 @@ func (h *TalkHandler) StartTalkStream(
 		}
 
 		remainingCount--
+		agentIdx++
+
+		// Update whiteboard every turn since the AI now returns it
+		if summaryText != "" || ideas != nil {
+			h.ai.UpdateTalkWhiteboard(ctx, docRef, summaryText, ideas)
+		}
+
 		_, _ = docRef.Update(ctx, []firestore.Update{
 			{Path: "remainingCount", Value: remainingCount},
 			{Path: "lastHeartbeat", Value: time.Now()},
@@ -263,11 +309,4 @@ func (h *TalkHandler) AddAgent(
 	return connect.NewResponse(&apiv1.AddAgentResponse{}), nil
 }
 
-func generateDummyText() string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, 20)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
-}
+
