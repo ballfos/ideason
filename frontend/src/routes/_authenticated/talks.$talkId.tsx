@@ -24,6 +24,7 @@ import { talkClient } from "#/lib/api";
 
 import { messageClient } from "#/lib/api";
 import { useAuth } from "#/features/auth/useAuth";
+import IdeaMap from "#/features/talks/components/idea-map";
 
 export const Route = createFileRoute("/_authenticated/talks/$talkId")({
   component: RouteComponent,
@@ -57,6 +58,8 @@ function RouteComponent() {
       createdAt: { seconds: number; nanoseconds: number };
       isFavorite: boolean;
       agentName?: string;
+      ideaName?: string;
+      embedding?: number[];
     }>
   >([]);
 
@@ -132,6 +135,8 @@ function RouteComponent() {
             },
             isFavorite: !!data.isFavorite,
             agentName: data.agentName,
+            ideaName: data.ideaName,
+            embedding: data.embedding,
           };
         });
         setMessages(newMessages);
@@ -371,10 +376,14 @@ function RouteComponent() {
                         </div>
                       </div>
                     </div>
+                  ) : activeTab === "supplies" ? (
+                    <div className="h-full w-full overflow-hidden">
+                      <IdeaMap messages={messages} />
+                    </div>
                   ) : (
                     <div className="flex h-full items-center justify-center p-8 text-center text-[#c2baa6]">
                       <p className="font-bold">
-                        「もちもの」はまだ準備中です...
+                        「メンバー」はまだ準備中です...
                       </p>
                     </div>
                   )}

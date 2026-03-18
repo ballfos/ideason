@@ -44,8 +44,10 @@ func (h *TalkHandler) CreateTalk(
 	data := map[string]interface{}{
 		"ownerId":   uid,
 		"topic":     req.Msg.Topic,
+		"status":    int64(apiv1.TalkStatus_TALK_STATUS_STOPPED),
 		"createdAt": now,
 		"updatedAt": now,
+		"agents":    []map[string]interface{}{},
 	}
 
 	// Save to Firestore
@@ -220,6 +222,17 @@ func (h *TalkHandler) StartTalkStream(
 			"createdAt": msgTime,
 			"talkId":    talkID,
 			"agentName": agentName,
+			"summary":   summaryText,
+			"ideas":     ideas,
+		}
+
+		// Save the first idea's name for the idea map label
+		if len(ideas) > 0 {
+			if firstIdea, ok := ideas[0].(map[string]interface{}); ok {
+				if name, ok := firstIdea["name"].(string); ok {
+					msgData["ideaName"] = name
+				}
+			}
 		}
 
 		_, err = docRef.Collection("messages").Doc(msgID).Set(ctx, msgData)
@@ -244,6 +257,25 @@ func (h *TalkHandler) StartTalkStream(
 		// Update whiteboard every turn since the AI now returns it
 		if summaryText != "" || ideas != nil {
 			h.ai.UpdateTalkWhiteboard(ctx, docRef, summaryText, ideas)
+		}
+
+		// Async Embedding
+		if summaryText != "" {
+			go func(text string, mID string) {
+				// Use Background context for async update
+				bgCtx := context.Background()
+				emb, err := h.ai.EmbedText(bgCtx, text)
+				if err != nil {
+					fmt.Printf("Embedding error: %v\n", err)
+					return
+				}
+				_, err = docRef.Collection("messages").Doc(mID).Update(bgCtx, []firestore.Update{
+					{Path: "embedding", Value: emb},
+				})
+				if err != nil {
+					fmt.Printf("Failed to update message with embedding: %v\n", err)
+				}
+			}(summaryText, msgID)
 		}
 
 		_, _ = docRef.Update(ctx, []firestore.Update{
