@@ -72,7 +72,9 @@ export function MessageBubble({
     };
 
     return (
-        <div className="relative overflow-hidden w-full">
+        <div className="relative w-full">
+            {/* Tailwind Purge Prevention */}
+            <div className="hidden ring-inset ring-2 ring-4 md:ring-6 ring-[#ffcb05] ring-opacity-30 ring-opacity-50 relative z-20" />
 
             <motion.div
                 id={`message-${id}`}
@@ -128,9 +130,9 @@ export function MessageBubble({
                                     const element = document.getElementById(`message-${replyTo.id}`);
                                     if (element) {
                                         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                        element.classList.add('ring-4', 'ring-[#ffcb05]', 'ring-opacity-50');
+                                        element.classList.add('ring-inset', 'ring-4', 'md:ring-6', 'ring-[#ffcb05]', 'ring-opacity-50', 'relative', 'z-20');
                                         setTimeout(() => {
-                                            element.classList.remove('ring-4', 'ring-[#ffcb05]', 'ring-opacity-50');
+                                            element.classList.remove('ring-inset', 'ring-4', 'md:ring-6', 'ring-[#ffcb05]', 'ring-opacity-50', 'relative', 'z-20');
                                         }, 2000);
                                     }
                                 }}
