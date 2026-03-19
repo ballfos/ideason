@@ -51,23 +51,20 @@ export function RouteComponent() {
       baseAgents = AGENT_PRESETS.slice(0, 2).map(p => ({ ...p, id: Math.random().toString(36).slice(2, 11) }))
     }
 
-    // 3. Add Custom agent (either from params or blank)
-    let customAgent: AgentPreset = { 
-        id: 'custom-init', 
-        name: 'カスタム', 
-        description: '役割を入力してください' 
-    }
+    // 3. Add Grandma agent as 3rd default
+    const grandma = AGENT_PRESETS.find(p => p.id === 'grandma')
+    let thirdAgent: AgentPreset = grandma 
+      ? { ...grandma, id: 'grandma-init' } 
+      : { id: 'custom-init', name: '', description: '' }
 
+    // If searchCustom is provided, it overrides the default third agent with a blank custom one.
+    // This effectively removes the initial custom agent if a custom one was previously specified
+    // but we now want to start fresh with the grandma preset.
     if (searchCustom) {
-      try {
-        const parsed = JSON.parse(searchCustom) as { name: string; description: string }
-        customAgent = { ...parsed, id: 'custom-init' }
-      } catch (e) {
-        console.error("Failed to parse search custom agent:", e)
-      }
+      thirdAgent = { id: 'custom-init', name: '', description: '' }
     }
 
-    return [...baseAgents.slice(0, 2), customAgent]
+    return [...baseAgents, thirdAgent]
   })
   const [openAccordion, setOpenAccordion] = useState<string | null>(null)
   const { setSteps } = useGuide()
@@ -120,7 +117,7 @@ export function RouteComponent() {
   }
 
   const addAgent = () => {
-    const newAgent = { id: Math.random().toString(36).slice(2, 11), name: "新しいエージェント", description: "役割を教えてね" }
+    const newAgent = { id: Math.random().toString(36).slice(2, 11), name: "", description: "" }
     setSelectedAgents([...selectedAgents, newAgent])
     setOpenAccordion(newAgent.id)
   }

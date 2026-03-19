@@ -48,6 +48,10 @@ export const AGENT_PRESETS: AgentPreset[] = [
     name: '小学生',
     description: '純粋な好奇心のかたまり。複雑なことを嫌い、「それって面白いの？」「ゲームみたいにしよう！」と無邪気なアイデアを提案します。'
   }, {
+    id: 'grandma',
+    name: 'おばあちゃん',
+    description: '豊富な知恵と深い共感力。ゆったりした時の流れの中で、物事の本質や人の心の機微を捉えた温かいアイデアを提案します。'
+  }, {
     id: 'idea-deer',
     name: 'アイディアー🦌',
     description: '最強のアイデアマン。あらゆる視点から斬新かつ共感性の高い最高のアイデアを提案します。'
@@ -122,7 +126,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               ))}
               <button
                 type="button"
-                onClick={() => onApplyPreset({ id: 'custom', name: 'カスタム', description: '役割を入力してください' })}
+                onClick={() => onApplyPreset({ id: 'custom', name: '', description: '' })}
                 className="px-3 py-1.5 rounded-full bg-[#a3967d] text-white text-xs font-black transition-all hover:bg-[#7a6446]"
               >
                 カスタム
