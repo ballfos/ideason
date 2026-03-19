@@ -22,6 +22,7 @@ jobs:
 
       # 環境変数の設定
       # API_KEYは Secrets、その他は Variables
+
       - run: cd frontend && npm ci && npm run build
         env:
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
@@ -38,3 +39,7 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_IDEERTHON }}
           channelId: live
           projectId: ideerthon
+
+      - run: |
+          cat frontend/.env
+          
