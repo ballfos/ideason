@@ -543,7 +543,7 @@ function RouteComponent() {
                           <MessageBubble
                             key={msg.id}
                             id={msg.id}
-                            content={msg.text}
+                            content={msg.ideaName ? `【${msg.ideaName}】\n${msg.text}` : msg.text}
                             isOwn={msg.uid === user?.uid}
                             timestamp={new Date(
                               msg.createdAt.seconds * 1000,
@@ -559,7 +559,9 @@ function RouteComponent() {
                               replyTarget
                                 ? {
                                     id: replyTarget.id,
-                                    text: replyTarget.text,
+                                    text: replyTarget.ideaName
+                                      ? `【${replyTarget.ideaName}】 ${replyTarget.text}`
+                                      : replyTarget.text,
                                     sender: replyTarget.agentName || "ユーザー",
                                   }
                                 : null
@@ -567,7 +569,9 @@ function RouteComponent() {
                             onReply={() =>
                               setReplyTo({
                                 id: msg.id,
-                                text: msg.text,
+                                text: msg.ideaName
+                                  ? `【${msg.ideaName}】 ${msg.text}`
+                                  : msg.text,
                                 sender: msg.agentName || "ユーザー",
                               })
                             }

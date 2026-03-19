@@ -111,7 +111,7 @@ export function MessageBubble({
                 <div className="flex max-w-[75%] flex-col gap-1">
                     <div
                         className={cn(
-                            "relative rounded-2xl px-4 py-3 text-sm font-bold tracking-tight shadow-sm border-2",
+                            "relative rounded-2xl px-4 py-3 text-sm font-bold tracking-tight shadow-sm border-2 whitespace-pre-wrap",
                             isOwn
                                 ? "bg-[#e2f7d5] border-[#b8e6a0] text-[#4b9635] rounded-br-none"
                                 : "bg-white border-[#d5cba1] text-[#7a6446] rounded-bl-none"
