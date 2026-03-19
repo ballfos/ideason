@@ -1,4 +1,4 @@
-import { useNavigate, createFileRoute } from '@tanstack/react-router'
+import { useNavigate, createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useGuide } from '@/features/guide/GuideContext'
 import { talkClient } from '../../lib/api'
@@ -6,7 +6,7 @@ import { useAuth } from '@/features/auth/useAuth'
 import { Plus, Loader2, ArrowLeft } from 'lucide-react'
 import { AgentCard, AGENT_PRESETS, type AgentPreset } from '@/features/talks/components/agent-selector'
 import { PageGuide } from '#/components/ui/page-guide'
-import { Link } from '@tanstack/react-router'
+import { cn } from '#/utils/ui/cn'
 
 export const Route = createFileRoute('/_authenticated/talks/new')({
   component: RouteComponent,
@@ -25,6 +25,11 @@ function RouteComponent() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isTouched, setIsTouched] = useState(false)
+
+  const isTopicTooLong = topic.length > 50
+  const isTopicEmpty = topic.trim() === ""
+  const showError = isTouched && (isTopicEmpty || isTopicTooLong)
 
   // Initialize with 3 agents (2 from presets + 1 custom/specific)
   const [selectedAgents, setSelectedAgents] = useState<AgentPreset[]>(() => {
@@ -72,7 +77,7 @@ function RouteComponent() {
       {
         targetId: 'step-topic',
         title: 'テーマを決める',
-        description: 'これから話し合いたいアイデアの題名を30文字以内で入力しましょう。'
+        description: 'これから話し合いたいアイデアの題名を50文字以内で入力しましょう。'
       },
       {
         targetId: 'step-members',
@@ -166,17 +171,39 @@ function RouteComponent() {
               テーマを決める
             </h2>
             <div className="md:pl-11">
-              <input
-                type="text"
-                placeholder="例) 新しいキャンプ用品のアイデア"
-                className="w-full bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 text-base md:text-lg font-black text-[#5a4a35] border-4 border-[#e8eed2] focus:outline-none focus:border-[#ffcb05] transition-all placeholder:text-[#c2baa6]/50 shadow-inner"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                maxLength={30}
-                required
-              />
-              <div className="mt-1 text-right text-[10px] font-black text-[#a3967d] opacity-60">
-                {topic.length} / 30
+              <div className="relative">
+                <input
+                  id="step-topic-input"
+                  type="text"
+                  placeholder="例) 新しいキャンプ用品のアイデア"
+                  className={cn(
+                    "w-full bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 text-base md:text-lg font-black text-[#5a4a35] border-4 transition-all placeholder:text-[#c2baa6]/50 shadow-inner",
+                    showError ? "border-red-400 focus:border-red-500" : "border-[#e8eed2] focus:outline-none focus:border-[#ffcb05]"
+                  )}
+                  value={topic}
+                  onChange={(e) => {
+                    setTopic(e.target.value)
+                    if (!isTouched) setIsTouched(true)
+                  }}
+                  onBlur={() => setIsTouched(true)}
+                  maxLength={100} // Allow typing a bit over 50 for the error effect
+                  required
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <div className="text-[10px] font-black">
+                  {showError && (
+                    <span className="text-red-500 animate-pulse">
+                      {isTopicEmpty ? "!! テーマを入力してください" : "!! 50文字以内で入力してください"}
+                    </span>
+                  )}
+                </div>
+                <div className={cn(
+                  "text-[10px] font-black transition-colors",
+                  isTopicTooLong ? "text-red-500" : "text-[#a3967d] opacity-80"
+                )}>
+                  {topic.length} / 50
+                </div>
               </div>
             </div>
           </section>
@@ -218,7 +245,7 @@ function RouteComponent() {
           <div id="start-button-zone" className="pt-4 flex flex-col items-center">
             <button
               type="submit"
-              disabled={isSubmitting || !topic.trim() || selectedAgents.length === 0}
+              disabled={isSubmitting || isTopicEmpty || isTopicTooLong || selectedAgents.length === 0}
               className="w-full md:w-auto md:px-16 py-5 md:py-6 bg-[#ffcb05] text-[#7a6446] text-lg md:text-xl font-black rounded-2xl md:rounded-[24px] border-b-8 border-[#e6b800] hover:translate-y-[-2px] hover:border-b-[10px] active:translate-y-[4px] active:border-b-[2px] transition-all disabled:opacity-50 disabled:grayscale disabled:translate-y-0 disabled:border-b-8 shadow-[0_10px_30px_-10px_rgba(255,203,5,0.5)] overflow-hidden"
             >
               <div className="absolute inset-x-0 h-1 top-0 bg-white/20" />
