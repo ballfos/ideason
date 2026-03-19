@@ -1,0 +1,47 @@
+package handler
+
+import (
+	"context"
+
+	"cloud.google.com/go/firestore"
+)
+
+// MockAIClient is a mock implementation of AIGenerator for testing
+type MockAIClient struct {
+	GenerateResponseFn    func(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error)
+	UpdateTalkWhiteboardFn func(ctx context.Context, docRef *firestore.DocumentRef, summary string, ideas []interface{})
+	EmbedTextFn           func(ctx context.Context, text string) ([]float32, error)
+
+	GenerateResponseCalled bool
+	UpdateTalkWhiteboardCalled bool
+	EmbedTextCalled bool
+}
+
+func (m *MockAIClient) GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error) {
+	m.GenerateResponseCalled = true
+	if m.GenerateResponseFn != nil {
+		return m.GenerateResponseFn(ctx, name, role, topic, whiteboard, recentContext, reply)
+	}
+	return map[string]interface{}{
+		"message": "Mock response",
+		"summary": "Mock summary",
+		"ideas":   []interface{}{map[string]interface{}{"name": "Mock Idea", "details": "Mock details"}},
+	}, nil
+}
+
+func (m *MockAIClient) UpdateTalkWhiteboard(ctx context.Context, docRef *firestore.DocumentRef, summary string, ideas []interface{}) {
+	m.UpdateTalkWhiteboardCalled = true
+	if m.UpdateTalkWhiteboardFn != nil {
+		m.UpdateTalkWhiteboardFn(ctx, docRef, summary, ideas)
+	}
+}
+
+func (m *MockAIClient) EmbedText(ctx context.Context, text string) ([]float32, error) {
+	m.EmbedTextCalled = true
+	if m.EmbedTextFn != nil {
+		return m.EmbedTextFn(ctx, text)
+	}
+	return []float32{0.1, 0.2, 0.3}, nil
+}
+
+var _ AIGenerator = (*MockAIClient)(nil)

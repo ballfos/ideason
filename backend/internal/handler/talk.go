@@ -19,10 +19,10 @@ import (
 type TalkHandler struct {
 	apiv1connect.UnimplementedTalkServiceHandler
 	firestore *firestore.Client
-	ai        *AIClient
+	ai        AIGenerator
 }
 
-func NewTalkHandler(fs *firestore.Client, ai *AIClient) *TalkHandler {
+func NewTalkHandler(fs *firestore.Client, ai AIGenerator) *TalkHandler {
 	return &TalkHandler{
 		firestore: fs,
 		ai:        ai,
