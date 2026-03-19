@@ -12,6 +12,7 @@ import (
 	"github.com/ballfos/ideerthon/gen/proto/api/v1/apiv1connect"
 	"github.com/ballfos/ideerthon/internal/middleware"
 	"github.com/google/uuid"
+	"google.golang.org/api/iterator"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -544,3 +545,49 @@ func (h *TalkHandler) UpdateAgent(ctx context.Context, req *connect.Request[apiv
 
 	return connect.NewResponse(&apiv1.UpdateAgentResponse{}), nil
 }
+
+// DeleteTalk は指定されたトークを削除します。
+func (h *TalkHandler) DeleteTalk(
+	ctx context.Context,
+	req *connect.Request[apiv1.DeleteTalkRequest],
+) (*connect.Response[apiv1.DeleteTalkResponse], error) {
+	uid, ok := middleware.GetUID(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("user not authenticated"))
+	}
+
+	talkID := req.Msg.TalkId
+	docRef := h.firestore.Collection("talks").Doc(talkID)
+
+	// 権限チェック
+	snap, err := docRef.Get(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("talk not found"))
+	}
+	if snap.Data()["ownerId"] != uid {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("not an owner of this talk"))
+	}
+	// メッセージサブコレクションの全ドキュメントを削除
+	msgIter := docRef.Collection("messages").Limit(500).Documents(ctx)
+	for {
+		doc, err := msgIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to list messages for deletion: %w", err))
+		}
+		if _, err := doc.Ref.Delete(ctx); err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete message: %w", err))
+		}
+	}
+
+	// 今回は親ドキュメントの削除のみ行う
+	_, err = docRef.Delete(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete talk: %w", err))
+	}
+
+	return connect.NewResponse(&apiv1.DeleteTalkResponse{}), nil
+}
+

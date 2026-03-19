@@ -47,6 +47,8 @@ const (
 	TalkServiceRemoveAgentProcedure = "/api.v1.TalkService/RemoveAgent"
 	// TalkServiceUpdateAgentProcedure is the fully-qualified name of the TalkService's UpdateAgent RPC.
 	TalkServiceUpdateAgentProcedure = "/api.v1.TalkService/UpdateAgent"
+	// TalkServiceDeleteTalkProcedure is the fully-qualified name of the TalkService's DeleteTalk RPC.
+	TalkServiceDeleteTalkProcedure = "/api.v1.TalkService/DeleteTalk"
 )
 
 // TalkServiceClient is a client for the api.v1.TalkService service.
@@ -57,6 +59,7 @@ type TalkServiceClient interface {
 	AddAgent(context.Context, *connect.Request[v1.AddAgentRequest]) (*connect.Response[v1.AddAgentResponse], error)
 	RemoveAgent(context.Context, *connect.Request[v1.RemoveAgentRequest]) (*connect.Response[v1.RemoveAgentResponse], error)
 	UpdateAgent(context.Context, *connect.Request[v1.UpdateAgentRequest]) (*connect.Response[v1.UpdateAgentResponse], error)
+	DeleteTalk(context.Context, *connect.Request[v1.DeleteTalkRequest]) (*connect.Response[v1.DeleteTalkResponse], error)
 }
 
 // NewTalkServiceClient constructs a client for the api.v1.TalkService service. By default, it uses
@@ -106,6 +109,12 @@ func NewTalkServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(talkServiceMethods.ByName("UpdateAgent")),
 			connect.WithClientOptions(opts...),
 		),
+		deleteTalk: connect.NewClient[v1.DeleteTalkRequest, v1.DeleteTalkResponse](
+			httpClient,
+			baseURL+TalkServiceDeleteTalkProcedure,
+			connect.WithSchema(talkServiceMethods.ByName("DeleteTalk")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -117,6 +126,7 @@ type talkServiceClient struct {
 	addAgent        *connect.Client[v1.AddAgentRequest, v1.AddAgentResponse]
 	removeAgent     *connect.Client[v1.RemoveAgentRequest, v1.RemoveAgentResponse]
 	updateAgent     *connect.Client[v1.UpdateAgentRequest, v1.UpdateAgentResponse]
+	deleteTalk      *connect.Client[v1.DeleteTalkRequest, v1.DeleteTalkResponse]
 }
 
 // CreateTalk calls api.v1.TalkService.CreateTalk.
@@ -149,6 +159,11 @@ func (c *talkServiceClient) UpdateAgent(ctx context.Context, req *connect.Reques
 	return c.updateAgent.CallUnary(ctx, req)
 }
 
+// DeleteTalk calls api.v1.TalkService.DeleteTalk.
+func (c *talkServiceClient) DeleteTalk(ctx context.Context, req *connect.Request[v1.DeleteTalkRequest]) (*connect.Response[v1.DeleteTalkResponse], error) {
+	return c.deleteTalk.CallUnary(ctx, req)
+}
+
 // TalkServiceHandler is an implementation of the api.v1.TalkService service.
 type TalkServiceHandler interface {
 	CreateTalk(context.Context, *connect.Request[v1.CreateTalkRequest]) (*connect.Response[v1.CreateTalkResponse], error)
@@ -157,6 +172,7 @@ type TalkServiceHandler interface {
 	AddAgent(context.Context, *connect.Request[v1.AddAgentRequest]) (*connect.Response[v1.AddAgentResponse], error)
 	RemoveAgent(context.Context, *connect.Request[v1.RemoveAgentRequest]) (*connect.Response[v1.RemoveAgentResponse], error)
 	UpdateAgent(context.Context, *connect.Request[v1.UpdateAgentRequest]) (*connect.Response[v1.UpdateAgentResponse], error)
+	DeleteTalk(context.Context, *connect.Request[v1.DeleteTalkRequest]) (*connect.Response[v1.DeleteTalkResponse], error)
 }
 
 // NewTalkServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -202,6 +218,12 @@ func NewTalkServiceHandler(svc TalkServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(talkServiceMethods.ByName("UpdateAgent")),
 		connect.WithHandlerOptions(opts...),
 	)
+	talkServiceDeleteTalkHandler := connect.NewUnaryHandler(
+		TalkServiceDeleteTalkProcedure,
+		svc.DeleteTalk,
+		connect.WithSchema(talkServiceMethods.ByName("DeleteTalk")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/api.v1.TalkService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TalkServiceCreateTalkProcedure:
@@ -216,6 +238,8 @@ func NewTalkServiceHandler(svc TalkServiceHandler, opts ...connect.HandlerOption
 			talkServiceRemoveAgentHandler.ServeHTTP(w, r)
 		case TalkServiceUpdateAgentProcedure:
 			talkServiceUpdateAgentHandler.ServeHTTP(w, r)
+		case TalkServiceDeleteTalkProcedure:
+			talkServiceDeleteTalkHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -247,4 +271,8 @@ func (UnimplementedTalkServiceHandler) RemoveAgent(context.Context, *connect.Req
 
 func (UnimplementedTalkServiceHandler) UpdateAgent(context.Context, *connect.Request[v1.UpdateAgentRequest]) (*connect.Response[v1.UpdateAgentResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.v1.TalkService.UpdateAgent is not implemented"))
+}
+
+func (UnimplementedTalkServiceHandler) DeleteTalk(context.Context, *connect.Request[v1.DeleteTalkRequest]) (*connect.Response[v1.DeleteTalkResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("api.v1.TalkService.DeleteTalk is not implemented"))
 }
