@@ -1,0 +1,69 @@
+// @vitest-environment happy-dom
+import { render, screen, fireEvent } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import "@testing-library/jest-dom/vitest"
+import { RouteComponent } from "@/routes/_authenticated/talks.new"
+
+// モックを hoisted で定義
+const { mockNavigate, mockSetSteps, mockUseSearch } = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockSetSteps: vi.fn(),
+  mockUseSearch: vi.fn(),
+}))
+
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual = await importOriginal() as any
+  return {
+    ...actual,
+    createFileRoute: () => () => ({
+      useSearch: mockUseSearch,
+      useNavigate: () => mockNavigate,
+    }),
+    useNavigate: () => mockNavigate,
+    Link: ({ children }: any) => <div>{children}</div>,
+  }
+})
+
+vi.mock("@/features/auth/useAuth", () => ({
+  useAuth: () => ({ user: { uid: "test-user" } }),
+}))
+
+vi.mock("@/lib/api", () => ({
+  talkClient: {
+    createTalk: vi.fn(),
+  },
+}))
+
+vi.mock("@/features/guide/GuideContext", () => ({
+  useGuide: () => ({ steps: [], setSteps: mockSetSteps }),
+}))
+
+// その他の UI コンポーネントをモック
+vi.mock("lucide-react", () => ({
+  Plus: () => <span />, Loader2: () => <span />, ArrowLeft: () => <span />,
+  Trash2: () => <span />, ChevronDown: () => <span />, ChevronUp: () => <span />,
+  User: () => <span />, HelpCircle: () => <span />,
+  MessageSquare: () => <span />, Lightbulb: () => <span />, Leaf: () => <span />,
+}))
+vi.mock("@/components/ui/page-guide", () => ({ PageGuide: () => <div /> }))
+vi.mock("#/components/ui/page-guide", () => ({ PageGuide: () => <div /> }))
+vi.mock("@/features/talks/components/agent-selector", () => ({
+  AgentCard: () => <div />,
+  AGENT_PRESETS: [{ id: 'engineer', name: '若手エンジニア', description: 'desc' }]
+}))
+
+describe("TalksNew テーマ文字数検証 (100文字)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockUseSearch.mockReturnValue({ topic: "", presets: "engineer", custom: "" })
+  })
+
+  it("テーマ入力の maxLength が 100 で、カウント表示も 100 であること", () => {
+    render(<RouteComponent />)
+    const topicInput = screen.getByPlaceholderText(/例\) 新しいキャンプ用品/i)
+    expect(topicInput).toHaveAttribute("maxLength", "100")
+    
+    fireEvent.change(topicInput, { target: { value: "テスト" } })
+    expect(screen.getByText("3 / 100")).toBeInTheDocument()
+  })
+})

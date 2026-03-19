@@ -29,7 +29,7 @@ describe("Button Component Property-Based Tests", () => {
 
     it("様々なVariantとSizeの組み合わせでクラスが正しく適用されること", () => {
         // 用意されているVariantとSizeのリスト
-        const variants = ["default", "primary", "destructive", "secondary", "outline", "ghost"] as const
+        const variants = ["blue", "green", "red", "yellow", "wood", "ghost"] as const
         const sizes = ["default", "sm", "lg", "icon"] as const
 
         fc.assert(
@@ -43,7 +43,7 @@ describe("Button Component Property-Based Tests", () => {
                                 テスト
                             </Button>
                         )
-                        
+
                         const buttonElement = screen.getByText("テスト")
                         expect(buttonElement).toBeInTheDocument()
 

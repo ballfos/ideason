@@ -1,5 +1,6 @@
 import React from 'react'
-import { User, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { User, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
+import { cn } from '#/utils/ui/cn'
 
 export interface AgentPreset {
   id: string;
@@ -48,6 +49,10 @@ export const AGENT_PRESETS: AgentPreset[] = [
     name: '小学生',
     description: '純粋な好奇心のかたまり。複雑なことを嫌い、「それって面白いの？」「ゲームみたいにしよう！」と無邪気なアイデアを提案します。'
   }, {
+    id: 'grandma',
+    name: 'おばあちゃん',
+    description: '豊富な知恵と深い共感力。ゆったりした時の流れの中で、物事の本質や人の心の機微を捉えた温かいアイデアを提案します。'
+  }, {
     id: 'idea-deer',
     name: 'アイディアー🦌',
     description: '最強のアイデアマン。あらゆる視点から斬新かつ共感性の高い最高のアイデアを提案します。'
@@ -73,6 +78,14 @@ export const AgentCard: React.FC<AgentCardProps> = ({
   onApplyPreset,
   showRemove
 }) => {
+  const [isNameTouched, setIsNameTouched] = React.useState(false)
+  const [isDescTouched, setIsDescTouched] = React.useState(false)
+
+  const isNameEmpty = agent.name.trim() === ""
+  const isDescEmpty = agent.description.trim() === ""
+  const showNameError = isNameTouched && isNameEmpty
+  const showDescError = isDescTouched && isDescEmpty
+
   return (
     <div className={`bg-white rounded-[24px] border-2 transition-all ${isOpen ? 'border-[#ffcb05] shadow-md ring-4 ring-[#ffcb05]/10' : 'border-[#d5cba1] shadow-sm'}`}>
       <div
@@ -122,10 +135,11 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               ))}
               <button
                 type="button"
-                onClick={() => onApplyPreset({ id: 'custom', name: 'カスタム', description: '役割を入力してください' })}
-                className="px-3 py-1.5 rounded-full bg-[#a3967d] text-white text-xs font-black transition-all hover:bg-[#7a6446]"
+                onClick={() => onApplyPreset({ id: 'custom', name: '', description: '' })}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#fcfaf2]/50 border-2 border-dashed border-[#d5cba1] hover:border-[#ffcb05] hover:bg-[#fff9e6] text-xs font-black text-[#7a6446] transition-all"
               >
-                カスタム
+                <Pencil className="h-3 w-3" />
+                自分で入力
               </button>
             </div>
           </div>
@@ -137,27 +151,55 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               <input
                 type="text"
                 value={agent.name}
-                onChange={(e) => onUpdate('name', e.target.value)}
+                onChange={(e) => {
+                  onUpdate('name', e.target.value)
+                  if (!isNameTouched) setIsNameTouched(true)
+                }}
+                onBlur={() => setIsNameTouched(true)}
                 maxLength={15}
-                className="w-full bg-white rounded-xl px-4 py-3 text-sm font-bold border-2 border-[#d5cba1] focus:outline-none focus:border-[#ffcb05] transition-colors"
+                className={cn(
+                  "w-full bg-white rounded-xl px-4 py-3 text-sm font-bold border-2 transition-colors",
+                  showNameError ? "border-red-400 focus:border-red-500" : "border-[#d5cba1] focus:outline-none focus:border-[#ffcb05]"
+                )}
                 placeholder="例: 村の案内人 (ファシリテーター)"
               />
-              <div className="mt-1 text-right text-[10px] font-black text-[#a3967d] opacity-60">
-                {agent.name.length} / 15
+              <div className="mt-1 flex items-center justify-between">
+                <div className="text-[10px] font-black">
+                  {showNameError && (
+                    <span className="text-red-500 animate-pulse">!! 名前を入力してください</span>
+                  )}
+                </div>
+                <div className="text-[10px] font-black text-[#a3967d] opacity-60">
+                  {agent.name.length} / 15
+                </div>
               </div>
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-black text-[#a3967d] tracking-widest uppercase ml-1">この子の役割</label>
               <textarea
                 value={agent.description}
-                onChange={(e) => onUpdate('description', e.target.value)}
+                onChange={(e) => {
+                  onUpdate('description', e.target.value)
+                  if (!isDescTouched) setIsDescTouched(true)
+                }}
+                onBlur={() => setIsDescTouched(true)}
                 rows={2}
                 maxLength={100}
-                className="w-full bg-white rounded-xl px-4 py-3 text-sm font-bold border-2 border-[#d5cba1] focus:outline-none focus:border-[#ffcb05] transition-colors resize-none"
+                className={cn(
+                  "w-full bg-white rounded-xl px-4 py-3 text-sm font-bold border-2 transition-colors resize-none",
+                  showDescError ? "border-red-400 focus:border-red-500" : "border-[#d5cba1] focus:outline-none focus:border-[#ffcb05]"
+                )}
                 placeholder="この子の性格や、話し方の特徴を入力してください"
               />
-              <div className="mt-1 text-right text-[10px] font-black text-[#a3967d] opacity-60">
-                {agent.description.length} / 100
+              <div className="mt-1 flex items-center justify-between">
+                <div className="text-[10px] font-black">
+                  {showDescError && (
+                    <span className="text-red-500 animate-pulse">!! 役割を入力してください</span>
+                  )}
+                </div>
+                <div className="text-[10px] font-black text-[#a3967d] opacity-60">
+                  {agent.description.length} / 100
+                </div>
               </div>
             </div>
           </div>

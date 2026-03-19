@@ -1,0 +1,43 @@
+
+> test
+> vitest run --run src/__tests__/routes/talks-new.test.tsx
+
+
+ RUN  v3.2.4 /Users/ookuraryousuke/Fork/ideerthon/frontend
+
+ ❯ src/__tests__/routes/talks-new.test.tsx (4 tests | 4 failed) 12ms
+   × TalksNew (トーク作成画面) バリデーションテスト > 初期状態では送信ボタンが非活性（disabled）であること 9ms
+     → Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+   × TalksNew (トーク作成画面) バリデーションテスト > テーマのバリデーションテスト 1ms
+     → Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+   × TalksNew (トーク作成画面) バリデーションテスト > エージェント名と役割のバリデーションテスト 1ms
+     → Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+   × TalksNew (トーク作成画面) バリデーションテスト > 正常な入力で送信すると API が呼ばれること 1ms
+     → Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/talks-new.test.tsx > TalksNew (トーク作成画面) バリデーションテスト > 初期状態では送信ボタンが非活性（disabled）であること
+ FAIL  src/__tests__/routes/talks-new.test.tsx > TalksNew (トーク作成画面) バリデーションテスト > テーマのバリデーションテスト
+ FAIL  src/__tests__/routes/talks-new.test.tsx > TalksNew (トーク作成画面) バリデーションテスト > エージェント名と役割のバリデーションテスト
+ FAIL  src/__tests__/routes/talks-new.test.tsx > TalksNew (トーク作成画面) バリデーションテスト > 正常な入力で送信すると API が呼ばれること
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+ ❯ createFiberFromTypeAndProps node_modules/react-dom/cjs/react-dom-client.development.js:5021:28
+ ❯ createFiberFromElement node_modules/react-dom/cjs/react-dom-client.development.js:5035:14
+ ❯ reconcileChildFibersImpl node_modules/react-dom/cjs/react-dom-client.development.js:6920:31
+ ❯ node_modules/react-dom/cjs/react-dom-client.development.js:7098:33
+ ❯ reconcileChildren node_modules/react-dom/cjs/react-dom-client.development.js:9702:13
+ ❯ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11899:15
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
+ ❯ renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:17450:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  17:16:59
+   Duration  509ms (transform 71ms, setup 0ms, collect 184ms, tests 12ms, environment 127ms, prepare 35ms)
+

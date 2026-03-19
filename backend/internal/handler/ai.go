@@ -11,9 +11,18 @@ import (
 	"google.golang.org/genai"
 )
 
+type AIGenerator interface {
+	GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error)
+	UpdateTalkWhiteboard(ctx context.Context, docRef *firestore.DocumentRef, summary string, ideas []interface{})
+	EmbedText(ctx context.Context, text string) ([]float32, error)
+}
+
 type AIClient struct {
 	client *genai.Client
 }
+
+// Ensure AIClient implements AIGenerator
+var _ AIGenerator = (*AIClient)(nil)
 
 type ReplyContext struct {
 	ReplyTargetText   string
