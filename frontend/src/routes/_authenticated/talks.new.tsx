@@ -7,18 +7,60 @@ import { AgentCard, AGENT_PRESETS, type AgentPreset } from '@/features/talks/com
 
 export const Route = createFileRoute('/_authenticated/talks/new')({
   component: RouteComponent,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      topic: search.topic as string | undefined,
+      presets: search.presets as string | undefined,
+      custom: search.custom as string | undefined,
+    }
+  }
 })
 
 function RouteComponent() {
-  const [topic, setTopic] = useState("")
+  const { topic: searchTopic, presets: searchPresets, custom: searchCustom } = Route.useSearch()
+  const [topic, setTopic] = useState(searchTopic || "")
   const { user } = useAuth()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Initialize with 3 agents
-  const [selectedAgents, setSelectedAgents] = useState<AgentPreset[]>(
-    AGENT_PRESETS.slice(0, 3).map(p => ({ ...p, id: Math.random().toString(36).slice(2, 11) }))
-  )
+  // Initialize with 3 agents (2 from presets + 1 custom/specific)
+  const [selectedAgents, setSelectedAgents] = useState<AgentPreset[]>(() => {
+    let baseAgents: AgentPreset[] = []
+    
+    // 1. Load Presets if IDs provided
+    if (searchPresets) {
+      const ids = searchPresets.split(',')
+      ids.forEach(id => {
+        const found = AGENT_PRESETS.find(p => p.id === id)
+        if (found) {
+          baseAgents.push({ ...found, id: Math.random().toString(36).slice(2, 11) })
+        }
+      })
+    }
+
+    // 2. Default to first 2 presets if none specified or found
+    if (baseAgents.length === 0) {
+      baseAgents = AGENT_PRESETS.slice(0, 2).map(p => ({ ...p, id: Math.random().toString(36).slice(2, 11) }))
+    }
+
+    // 3. Add Custom agent (either from params or blank)
+    let customAgent: AgentPreset = { 
+        id: 'custom-init', 
+        name: 'カスタム', 
+        description: '役割を入力してください' 
+    }
+
+    if (searchCustom) {
+      try {
+        const parsed = JSON.parse(searchCustom) as { name: string; description: string }
+        customAgent = { ...parsed, id: 'custom-init' }
+      } catch (e) {
+        console.error("Failed to parse search custom agent:", e)
+      }
+    }
+
+    return [...baseAgents.slice(0, 2), customAgent]
+  })
   const [openAccordion, setOpenAccordion] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
