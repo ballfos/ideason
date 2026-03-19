@@ -140,17 +140,25 @@ function RouteComponent() {
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
           element.classList.add(
-            "ring-8",
+            "ring-inset",
+            "ring-4",
+            "md:ring-6",
             "ring-[#ffcb05]",
             "ring-opacity-30",
+            "relative",
+            "z-20",
             "transition-all",
             "duration-500",
           );
           setTimeout(() => {
             element.classList.remove(
-              "ring-8",
+              "ring-inset",
+              "ring-4",
+              "md:ring-6",
               "ring-[#ffcb05]",
               "ring-opacity-30",
+              "relative",
+              "z-20",
             );
           }, 3000);
         }
@@ -399,15 +407,19 @@ function RouteComponent() {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
         // Highlight effect
         element.classList.add(
-          "ring-8",
+          "ring-inset",
+          "ring-4",
+          "md:ring-6",
           "ring-[#ffcb05]",
           "ring-opacity-30",
+          "relative",
+          "z-20",
           "rounded-2xl",
           "transition-all",
           "duration-500",
         );
         setTimeout(() => {
-          element.classList.remove("ring-8", "ring-[#ffcb05]", "ring-opacity-30");
+          element.classList.remove("ring-inset", "ring-4", "md:ring-6", "ring-[#ffcb05]", "ring-opacity-30", "relative", "z-20");
         }, 2000);
       }
     }, 100);
@@ -481,7 +493,7 @@ function RouteComponent() {
                 />
                 </div>
 
-                <div id="chat-scroll-area" ref={scrollRef} className="flex-1 overflow-y-auto pb-4 scroll-smooth">
+                <div id="chat-scroll-area" ref={scrollRef} className="flex-1 overflow-y-auto px-1 pb-4 scroll-smooth">
                   {activeTab === "chat" ? (
                     <div className="flex flex-col py-2 max-w-4xl mx-auto w-full">
                       {messages.map((msg) => {
