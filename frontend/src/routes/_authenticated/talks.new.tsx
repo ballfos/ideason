@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authenticated/talks/new')({
   }
 })
 
-function RouteComponent() {
+export function RouteComponent() {
   const { topic: searchTopic, presets: searchPresets, custom: searchCustom } = Route.useSearch()
   const [topic, setTopic] = useState(searchTopic || "")
   const { user } = useAuth()
