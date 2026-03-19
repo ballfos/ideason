@@ -723,6 +723,86 @@ func (*UpdateAgentResponse) Descriptor() ([]byte, []int) {
 	return file_proto_api_v1_talk_proto_rawDescGZIP(), []int{12}
 }
 
+type DeleteTalkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TalkId        string                 `protobuf:"bytes,1,opt,name=talk_id,json=talkId,proto3" json:"talk_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteTalkRequest) Reset() {
+	*x = DeleteTalkRequest{}
+	mi := &file_proto_api_v1_talk_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteTalkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTalkRequest) ProtoMessage() {}
+
+func (x *DeleteTalkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_api_v1_talk_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTalkRequest.ProtoReflect.Descriptor instead.
+func (*DeleteTalkRequest) Descriptor() ([]byte, []int) {
+	return file_proto_api_v1_talk_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *DeleteTalkRequest) GetTalkId() string {
+	if x != nil {
+		return x.TalkId
+	}
+	return ""
+}
+
+type DeleteTalkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteTalkResponse) Reset() {
+	*x = DeleteTalkResponse{}
+	mi := &file_proto_api_v1_talk_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteTalkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTalkResponse) ProtoMessage() {}
+
+func (x *DeleteTalkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_api_v1_talk_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTalkResponse.ProtoReflect.Descriptor instead.
+func (*DeleteTalkResponse) Descriptor() ([]byte, []int) {
+	return file_proto_api_v1_talk_proto_rawDescGZIP(), []int{14}
+}
+
 var File_proto_api_v1_talk_proto protoreflect.FileDescriptor
 
 const file_proto_api_v1_talk_proto_rawDesc = "" +
@@ -767,12 +847,15 @@ const file_proto_api_v1_talk_proto_rawDesc = "" +
 	"\vagent_index\x18\x02 \x01(\x05R\n" +
 	"agentIndex\x12#\n" +
 	"\x05agent\x18\x03 \x01(\v2\r.api.v1.AgentR\x05agent\"\x15\n" +
-	"\x13UpdateAgentResponse*[\n" +
+	"\x13UpdateAgentResponse\",\n" +
+	"\x11DeleteTalkRequest\x12\x17\n" +
+	"\atalk_id\x18\x01 \x01(\tR\x06talkId\"\x14\n" +
+	"\x12DeleteTalkResponse*[\n" +
 	"\n" +
 	"TalkStatus\x12\x1b\n" +
 	"\x17TALK_STATUS_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13TALK_STATUS_RUNNING\x10\x01\x12\x17\n" +
-	"\x13TALK_STATUS_STOPPED\x10\x022\xb8\x03\n" +
+	"\x13TALK_STATUS_STOPPED\x10\x022\xfd\x03\n" +
 	"\vTalkService\x12C\n" +
 	"\n" +
 	"CreateTalk\x12\x19.api.v1.CreateTalkRequest\x1a\x1a.api.v1.CreateTalkResponse\x12D\n" +
@@ -780,7 +863,9 @@ const file_proto_api_v1_talk_proto_rawDesc = "" +
 	"\x0eStopTalkStream\x12\x1d.api.v1.StopTalkStreamRequest\x1a\x1e.api.v1.StopTalkStreamResponse\x12=\n" +
 	"\bAddAgent\x12\x17.api.v1.AddAgentRequest\x1a\x18.api.v1.AddAgentResponse\x12F\n" +
 	"\vRemoveAgent\x12\x1a.api.v1.RemoveAgentRequest\x1a\x1b.api.v1.RemoveAgentResponse\x12F\n" +
-	"\vUpdateAgent\x12\x1a.api.v1.UpdateAgentRequest\x1a\x1b.api.v1.UpdateAgentResponseB\x85\x01\n" +
+	"\vUpdateAgent\x12\x1a.api.v1.UpdateAgentRequest\x1a\x1b.api.v1.UpdateAgentResponse\x12C\n" +
+	"\n" +
+	"DeleteTalk\x12\x19.api.v1.DeleteTalkRequest\x1a\x1a.api.v1.DeleteTalkResponseB\x85\x01\n" +
 	"\n" +
 	"com.api.v1B\tTalkProtoP\x01Z3github.com/ballfos/ideerthon/gen/proto/api/v1;apiv1\xa2\x02\x03AXX\xaa\x02\x06Api.V1\xca\x02\x06Api\\V1\xe2\x02\x12Api\\V1\\GPBMetadata\xea\x02\aApi::V1b\x06proto3"
 
@@ -797,7 +882,7 @@ func file_proto_api_v1_talk_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_api_v1_talk_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_api_v1_talk_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_proto_api_v1_talk_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_proto_api_v1_talk_proto_goTypes = []any{
 	(TalkStatus)(0),                // 0: api.v1.TalkStatus
 	(*Talk)(nil),                   // 1: api.v1.Talk
@@ -813,14 +898,16 @@ var file_proto_api_v1_talk_proto_goTypes = []any{
 	(*RemoveAgentResponse)(nil),    // 11: api.v1.RemoveAgentResponse
 	(*UpdateAgentRequest)(nil),     // 12: api.v1.UpdateAgentRequest
 	(*UpdateAgentResponse)(nil),    // 13: api.v1.UpdateAgentResponse
-	(*timestamppb.Timestamp)(nil),  // 14: google.protobuf.Timestamp
-	(*Message)(nil),                // 15: api.v1.Message
+	(*DeleteTalkRequest)(nil),      // 14: api.v1.DeleteTalkRequest
+	(*DeleteTalkResponse)(nil),     // 15: api.v1.DeleteTalkResponse
+	(*timestamppb.Timestamp)(nil),  // 16: google.protobuf.Timestamp
+	(*Message)(nil),                // 17: api.v1.Message
 }
 var file_proto_api_v1_talk_proto_depIdxs = []int32{
-	14, // 0: api.v1.Talk.created_at:type_name -> google.protobuf.Timestamp
-	14, // 1: api.v1.Talk.updated_at:type_name -> google.protobuf.Timestamp
+	16, // 0: api.v1.Talk.created_at:type_name -> google.protobuf.Timestamp
+	16, // 1: api.v1.Talk.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: api.v1.Talk.status:type_name -> api.v1.TalkStatus
-	14, // 3: api.v1.Talk.last_heartbeat:type_name -> google.protobuf.Timestamp
+	16, // 3: api.v1.Talk.last_heartbeat:type_name -> google.protobuf.Timestamp
 	2,  // 4: api.v1.Talk.agents:type_name -> api.v1.Agent
 	2,  // 5: api.v1.CreateTalkRequest.agents:type_name -> api.v1.Agent
 	1,  // 6: api.v1.CreateTalkResponse.talk:type_name -> api.v1.Talk
@@ -832,14 +919,16 @@ var file_proto_api_v1_talk_proto_depIdxs = []int32{
 	8,  // 12: api.v1.TalkService.AddAgent:input_type -> api.v1.AddAgentRequest
 	10, // 13: api.v1.TalkService.RemoveAgent:input_type -> api.v1.RemoveAgentRequest
 	12, // 14: api.v1.TalkService.UpdateAgent:input_type -> api.v1.UpdateAgentRequest
-	4,  // 15: api.v1.TalkService.CreateTalk:output_type -> api.v1.CreateTalkResponse
-	15, // 16: api.v1.TalkService.StartTalkStream:output_type -> api.v1.Message
-	7,  // 17: api.v1.TalkService.StopTalkStream:output_type -> api.v1.StopTalkStreamResponse
-	9,  // 18: api.v1.TalkService.AddAgent:output_type -> api.v1.AddAgentResponse
-	11, // 19: api.v1.TalkService.RemoveAgent:output_type -> api.v1.RemoveAgentResponse
-	13, // 20: api.v1.TalkService.UpdateAgent:output_type -> api.v1.UpdateAgentResponse
-	15, // [15:21] is the sub-list for method output_type
-	9,  // [9:15] is the sub-list for method input_type
+	14, // 15: api.v1.TalkService.DeleteTalk:input_type -> api.v1.DeleteTalkRequest
+	4,  // 16: api.v1.TalkService.CreateTalk:output_type -> api.v1.CreateTalkResponse
+	17, // 17: api.v1.TalkService.StartTalkStream:output_type -> api.v1.Message
+	7,  // 18: api.v1.TalkService.StopTalkStream:output_type -> api.v1.StopTalkStreamResponse
+	9,  // 19: api.v1.TalkService.AddAgent:output_type -> api.v1.AddAgentResponse
+	11, // 20: api.v1.TalkService.RemoveAgent:output_type -> api.v1.RemoveAgentResponse
+	13, // 21: api.v1.TalkService.UpdateAgent:output_type -> api.v1.UpdateAgentResponse
+	15, // 22: api.v1.TalkService.DeleteTalk:output_type -> api.v1.DeleteTalkResponse
+	16, // [16:23] is the sub-list for method output_type
+	9,  // [9:16] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -857,7 +946,7 @@ func file_proto_api_v1_talk_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_api_v1_talk_proto_rawDesc), len(file_proto_api_v1_talk_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

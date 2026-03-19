@@ -2,6 +2,8 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTalks } from '@/features/talks'
 import { useGuide } from '@/features/guide/GuideContext'
 import { useEffect } from 'react'
+import { talkClient } from '#/lib/api'
+import { Trash2 } from 'lucide-react'
 
 export const Route = createFileRoute('/_authenticated/_layout/talks')({
   component: RouteComponent,
@@ -10,6 +12,18 @@ export const Route = createFileRoute('/_authenticated/_layout/talks')({
 function RouteComponent() {
   const { talks, loading, error } = useTalks()
   const { setSteps } = useGuide()
+
+  const handleDeleteTalk = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!window.confirm("このトークを削除しますか？（お気に入り登録されたメッセージも含め、関連するデータがすべて削除されます）")) return
+    try {
+      await talkClient.deleteTalk({ talkId: id })
+    } catch (err) {
+      console.error("Failed to delete talk:", err)
+      alert("トークの削除に失敗しました")
+    }
+  }
 
   useEffect(() => {
     setSteps([
@@ -57,9 +71,17 @@ function RouteComponent() {
                   {talk.updatedAt ? new Date(talk.updatedAt.toMillis()).toLocaleString('ja-JP') : '未設定'}
                 </span>
               </div>
-              <span className="font-black text-2xl text-[#a3967d] group-hover:translate-x-1 transition-transform ml-4">
-                {'>'}
-              </span>
+              <div className="flex items-center gap-4 ml-4">
+                <button
+                  onClick={(e) => handleDeleteTalk(e, talk.id)}
+                  className="p-2 text-[#c2baa6] hover:text-red-500 transition-colors pointer-events-auto"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                <span className="font-black text-2xl text-[#a3967d] group-hover:translate-x-1 transition-transform">
+                  {'>'}
+                </span>
+              </div>
             </Link>
           ))}
         </div>

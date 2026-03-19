@@ -69,6 +69,12 @@ message UpdateAgentRequest {
 
 message UpdateAgentResponse {}
 
+message DeleteTalkRequest {
+  string talk_id = 1;
+}
+
+message DeleteTalkResponse {}
+
 service TalkService {
   rpc CreateTalk(CreateTalkRequest) returns (CreateTalkResponse);
   rpc StartTalkStream(StartTalkStreamRequest) returns (stream Message);
@@ -76,4 +82,5 @@ service TalkService {
   rpc AddAgent(AddAgentRequest) returns (AddAgentResponse);
   rpc RemoveAgent(RemoveAgentRequest) returns (RemoveAgentResponse);
   rpc UpdateAgent(UpdateAgentRequest) returns (UpdateAgentResponse);
+  rpc DeleteTalk(DeleteTalkRequest) returns (DeleteTalkResponse);
 }

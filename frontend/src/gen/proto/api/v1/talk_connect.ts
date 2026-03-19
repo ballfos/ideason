@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddAgentRequest, AddAgentResponse, CreateTalkRequest, CreateTalkResponse, RemoveAgentRequest, RemoveAgentResponse, StartTalkStreamRequest, StopTalkStreamRequest, StopTalkStreamResponse, UpdateAgentRequest, UpdateAgentResponse } from "./talk_pb.js";
+import { AddAgentRequest, AddAgentResponse, CreateTalkRequest, CreateTalkResponse, DeleteTalkRequest, DeleteTalkResponse, RemoveAgentRequest, RemoveAgentResponse, StartTalkStreamRequest, StopTalkStreamRequest, StopTalkStreamResponse, UpdateAgentRequest, UpdateAgentResponse } from "./talk_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { Message } from "./message_pb.js";
 
@@ -65,6 +65,15 @@ export const TalkService = {
       name: "UpdateAgent",
       I: UpdateAgentRequest,
       O: UpdateAgentResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc api.v1.TalkService.DeleteTalk
+     */
+    deleteTalk: {
+      name: "DeleteTalk",
+      I: DeleteTalkRequest,
+      O: DeleteTalkResponse,
       kind: MethodKind.Unary,
     },
   }

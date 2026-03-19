@@ -1,0 +1,72 @@
+# backend/.golangci.yaml
+version: "2"
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  skip-dirs:
+    - gen
+    - tmp
+
+linters:
+  default: none # v1の `disable-all: true` の代わり
+  enable:
+    # 必須・基本（※gosimpleはstaticcheckに統合されたため削除）
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    
+    # スタイル・品質向上
+    - revive
+    - gocritic
+    - misspell
+    - unparam
+    - prealloc
+    
+    # セキュリティ・副作用
+    - gosec
+    - goconst
+    - bodyclose
+    
+    # API・クラウド通信
+    - contextcheck
+    - errorlint
+    - nilerr
+
+  # v1の `linters-settings:` は廃止され、ここにネストされます
+  settings:
+    govet:
+      enable:
+        - shadow
+    
+    revive:
+      rules:
+        - name: exported
+        - name: var-naming
+        - name: function-result-limit
+          arguments: [3]
+
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+      disabled-checks:
+        - appendAssign
+
+    goconst:
+      min-len: 2
+      min-occurrences: 3
+
+# フォーマッターはLinterから完全に独立しました
+formatters:
+  enable:
+    - gofumpt
+    - gci
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
