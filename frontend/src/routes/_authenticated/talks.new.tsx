@@ -240,9 +240,27 @@ export function RouteComponent() {
 
           {/* Submission */}
           <div id="start-button-zone" className="pt-4 flex flex-col items-center">
+            {/* Validation Message Summary */}
+            <div className="mb-4 min-h-[1.5rem] text-center">
+              {(isTopicEmpty || isTopicTooLong || selectedAgents.length === 0 || selectedAgents.some(a => a.name.trim() === "" || a.description.trim() === "")) && (
+                <p className="text-[11px] md:text-xs font-black text-red-500 bg-red-50 px-4 py-2 rounded-full border-2 border-red-100 animate-in fade-in slide-in-from-bottom-2">
+                  {isTopicEmpty && "!! テーマを入力してください"}
+                  {!isTopicEmpty && isTopicTooLong && "!! テーマは50文字以内にしてください"}
+                  {!isTopicEmpty && !isTopicTooLong && selectedAgents.length === 0 && "!! メンバーを1人以上追加してください"}
+                  {!isTopicEmpty && !isTopicTooLong && selectedAgents.length > 0 && selectedAgents.some(a => a.name.trim() === "" || a.description.trim() === "") && "!! すべてのメンバーの名前と役割を入力してください"}
+                </p>
+              )}
+            </div>
+
             <button
               type="submit"
-              disabled={isSubmitting || isTopicEmpty || isTopicTooLong || selectedAgents.length === 0}
+              disabled={
+                isSubmitting || 
+                isTopicEmpty || 
+                isTopicTooLong || 
+                selectedAgents.length === 0 || 
+                selectedAgents.some(a => a.name.trim() === "" || a.description.trim() === "")
+              }
               className="w-full md:w-auto md:px-16 py-5 md:py-6 bg-[#ffcb05] text-[#7a6446] text-lg md:text-xl font-black rounded-2xl md:rounded-[24px] border-b-8 border-[#e6b800] hover:translate-y-[-2px] hover:border-b-[10px] active:translate-y-[4px] active:border-b-[2px] transition-all disabled:opacity-50 disabled:grayscale disabled:translate-y-0 disabled:border-b-8 shadow-[0_10px_30px_-10px_rgba(255,203,5,0.5)] overflow-hidden"
             >
               <div className="absolute inset-x-0 h-1 top-0 bg-white/20" />
