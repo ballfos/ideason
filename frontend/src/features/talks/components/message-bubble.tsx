@@ -111,7 +111,7 @@ export function MessageBubble({
                 <div className="flex max-w-[75%] flex-col gap-1">
                     <div
                         className={cn(
-                            "relative rounded-2xl px-4 py-3 text-sm font-bold tracking-tight shadow-sm border-2",
+                            "relative rounded-2xl px-4 py-3 text-sm font-bold tracking-tight shadow-sm border-2 whitespace-pre-wrap",
                             isOwn
                                 ? "bg-[#e2f7d5] border-[#b8e6a0] text-[#4b9635] rounded-br-none"
                                 : "bg-white border-[#d5cba1] text-[#7a6446] rounded-bl-none"
@@ -169,13 +169,13 @@ export function MessageBubble({
                             <Star className={cn("h-5 w-5", isFavorite && "fill-current")} />
                         </button>
 
-                        {/* 吹き出しのしっぽ（簡易版） */}
+                        {/* 吹き出しのしっぽ（角から自然に生えるように座標と回転を指定） */}
                         <div
                             className={cn(
-                                "absolute bottom-[-2px] h-3 w-3 border-b-2 border-r-2",
+                                "absolute bottom-[-7px] h-3 w-3 bg-inherit border-inherit",
                                 isOwn
-                                    ? "right-[-7px] rotate-45 border-[#b8e6a0] bg-[#e2f7d5]"
-                                    : "left-[-7px] rotate-[225deg] border-[#d5cba1] bg-white"
+                                    ? "right-0 rotate-45 border-r-2 border-b-2"
+                                    : "left-0 rotate-[-45deg] border-l-2 border-b-2"
                             )}
                         />
                     </div>

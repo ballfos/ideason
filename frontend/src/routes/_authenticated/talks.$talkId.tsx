@@ -128,13 +128,20 @@ function RouteComponent() {
   >([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const lastProcessedHash = useRef("");
+
   // オートスクロール & ハッシュジャンプ
   useEffect(() => {
     if (messages.length === 0) return;
 
+    const hash = window.location.hash;
     // ハッシュがある場合は、その場所へのジャンプを優先する
-    if (window.location.hash) {
-      const messageId = window.location.hash.replace("#message-", "");
+    if (hash && hash.startsWith("#message-")) {
+      // すでにこのハッシュを処理済みの場合は何もしない
+      if (hash === lastProcessedHash.current) return;
+      lastProcessedHash.current = hash;
+
+      const messageId = hash.replace("#message-", "");
       const timer = setTimeout(() => {
         const element = document.getElementById(`message-${messageId}`);
         if (element) {
@@ -160,6 +167,10 @@ function RouteComponent() {
               "relative",
               "z-20",
             );
+            // ハイライトが終わったらハッシュをクリアする
+            if (window.location.hash === hash) {
+              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+            }
           }, 3000);
         }
       }, 500);
@@ -167,7 +178,7 @@ function RouteComponent() {
     }
 
     // ハッシュがない場合のみ最下部へスクロール
-    if (scrollRef.current) {
+    if (scrollRef.current && !hash) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages.length, talkStatus, talkId]);
@@ -265,17 +276,7 @@ function RouteComponent() {
     return () => unsubscribe();
   }, [talkId]);
 
-  // ジャンプ機能用: URLにハッシュがある場合にスクロール
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && messages.length > 0) {
-      const id = hash.replace("#", "");
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }
-  }, [messages]);
+
 
   const handleStartTalk = async () => {
     if (talkStatus === TalkStatus.RUNNING || talkId === "none") return;
@@ -419,10 +420,33 @@ function RouteComponent() {
           "duration-500",
         );
         setTimeout(() => {
-          element.classList.remove("ring-inset", "ring-4", "md:ring-6", "ring-[#ffcb05]", "ring-opacity-30", "relative", "z-20");
+          element.classList.remove(
+            "ring-inset",
+            "ring-4",
+            "md:ring-6",
+            "ring-[#ffcb05]",
+            "ring-opacity-30",
+            "relative",
+            "z-20",
+          );
         }, 2000);
       }
     }, 100);
+  };
+
+  const handleDeleteTalk = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm("このトークを削除しますか？（お気に入り登録されたメッセージも含め、関連するデータがすべて削除されます）")) return;
+    try {
+      await talkClient.deleteTalk({ talkId: id });
+      if (id === talkId) {
+        navigate({ to: "/talks/$talkId", params: { talkId: "none" } });
+      }
+    } catch (err) {
+      console.error("Failed to delete talk:", err);
+      alert("トークの削除に失敗しました");
+    }
   };
 
   return (
@@ -460,9 +484,17 @@ function RouteComponent() {
                   <span className="truncate font-black tracking-tight flex-1 min-w-0 mr-2">
                     {rawTalk.topic}
                   </span>
-                  <span className="shrink-0 font-black text-lg opacity-70 group-hover:opacity-100 transition-opacity">
-                    {">"}
-                  </span>
+                  <div className="flex items-center">
+                    <button
+                      onClick={(e) => handleDeleteTalk(e, rawTalk.id)}
+                      className="p-1 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    <span className="shrink-0 font-black text-lg opacity-70 group-hover:opacity-100 transition-opacity ml-1">
+                      {">"}
+                    </span>
+                  </div>
                 </Link>
               ))
             )}
@@ -478,6 +510,13 @@ function RouteComponent() {
                 className="min-[451px]:h-20 min-[451px]:rounded-none min-[451px]:bg-transparent min-[451px]:from-transparent min-[451px]:to-transparent min-[451px]:shadow-none min-[451px]:border-b-0 shrink-0"
                 titleClassName="min-[451px]:text-[#7a6446] min-[451px]:drop-shadow-none"
                 helpGuide={<PageGuide steps={useGuide().steps} />}
+                onDelete={() => {
+                  const syntheticEvent = {
+                    preventDefault: () => {},
+                    stopPropagation: () => {},
+                  } as React.MouseEvent;
+                  handleDeleteTalk(syntheticEvent, talkId);
+                }}
               />
 
               <div id="talk-control" className="px-4 py-2 flex justify-center bg-[#fcfaf2]">
@@ -504,7 +543,7 @@ function RouteComponent() {
                           <MessageBubble
                             key={msg.id}
                             id={msg.id}
-                            content={msg.text}
+                            content={msg.ideaName ? `【${msg.ideaName}】\n${msg.text}` : msg.text}
                             isOwn={msg.uid === user?.uid}
                             timestamp={new Date(
                               msg.createdAt.seconds * 1000,
@@ -520,7 +559,9 @@ function RouteComponent() {
                               replyTarget
                                 ? {
                                     id: replyTarget.id,
-                                    text: replyTarget.text,
+                                    text: replyTarget.ideaName
+                                      ? `【${replyTarget.ideaName}】 ${replyTarget.text}`
+                                      : replyTarget.text,
                                     sender: replyTarget.agentName || "ユーザー",
                                   }
                                 : null
@@ -528,7 +569,9 @@ function RouteComponent() {
                             onReply={() =>
                               setReplyTo({
                                 id: msg.id,
-                                text: msg.text,
+                                text: msg.ideaName
+                                  ? `【${msg.ideaName}】 ${msg.text}`
+                                  : msg.text,
                                 sender: msg.agentName || "ユーザー",
                               })
                             }

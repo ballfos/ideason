@@ -8,20 +8,24 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"connectrpc.com/connect"
-	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
-
 	apiv1 "github.com/ballfos/ideerthon/gen/proto/api/v1"
 	"github.com/ballfos/ideerthon/gen/proto/api/v1/apiv1connect"
 	"github.com/ballfos/ideerthon/internal/middleware"
+	"github.com/google/uuid"
+	"google.golang.org/api/iterator"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const userSenderName = "ユーザー"
+
+// TalkHandler はトーク（対話）に関する操作を担当するハンドラーです。
 type TalkHandler struct {
 	apiv1connect.UnimplementedTalkServiceHandler
 	firestore *firestore.Client
 	ai        AIGenerator
 }
 
+// NewTalkHandler は新しい TalkHandler を作成します。
 func NewTalkHandler(fs *firestore.Client, ai AIGenerator) *TalkHandler {
 	return &TalkHandler{
 		firestore: fs,
@@ -29,6 +33,7 @@ func NewTalkHandler(fs *firestore.Client, ai AIGenerator) *TalkHandler {
 	}
 }
 
+// CreateTalk は新しいトーク（対話）を作成します。
 func (h *TalkHandler) CreateTalk(
 	ctx context.Context,
 	req *connect.Request[apiv1.CreateTalkRequest],
@@ -63,7 +68,7 @@ func (h *TalkHandler) CreateTalk(
 	// Save to Firestore
 	_, err := h.firestore.Collection("talks").Doc(id).Set(ctx, data)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to save talk: %v", err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to save talk: %w", err))
 	}
 	// Implement `StartTalkStream`:
 	// - Validate user authentication.
@@ -92,6 +97,8 @@ func (h *TalkHandler) CreateTalk(
 
 	return res, nil
 }
+
+// StartTalkStream はトークの進行（AIの自動応答）をストリーミング形式で開始します。
 func (h *TalkHandler) StartTalkStream(
 	ctx context.Context,
 	req *connect.Request[apiv1.StartTalkStreamRequest],
@@ -109,7 +116,7 @@ func (h *TalkHandler) StartTalkStream(
 	// Check current status
 	doc, err := docRef.Get(ctx)
 	if err != nil {
-		return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get talk: %v", err))
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get talk: %w", err))
 	}
 
 	data := doc.Data()
@@ -136,7 +143,7 @@ func (h *TalkHandler) StartTalkStream(
 		{Path: "lastHeartbeat", Value: now},
 	})
 	if err != nil {
-		return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update talk status: %v", err))
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update talk status: %w", err))
 	}
 
 	// Channel to signal STOPPED status from snapshot listener
@@ -175,7 +182,7 @@ func (h *TalkHandler) StartTalkStream(
 		// Refresh talk data to get latest summary and agents
 		doc, err := docRef.Get(ctx)
 		if err != nil {
-			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to refresh talk: %v", err))
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to refresh talk: %w", err))
 		}
 		data := doc.Data()
 		topic, _ := data["topic"].(string)
@@ -213,7 +220,7 @@ func (h *TalkHandler) StartTalkStream(
 				uid, _ := m["uid"].(string)
 				sender, _ := m["agentName"].(string)
 				if sender == "" {
-					sender = "ユーザー"
+					sender = userSenderName
 				}
 				text, _ := m["text"].(string)
 				createdAt, _ := m["createdAt"].(time.Time)
@@ -234,7 +241,7 @@ func (h *TalkHandler) StartTalkStream(
 		}
 
 		// Combine and sort chronologically
-		var combined []Msg
+		combined := make([]Msg, 0, len(aiMsgs)+len(humanMsgs))
 		combined = append(combined, aiMsgs...)
 		combined = append(combined, humanMsgs...)
 		sort.Slice(combined, func(i, j int) bool {
@@ -249,12 +256,15 @@ func (h *TalkHandler) StartTalkStream(
 			replyID, _ := latestMsg["replyToMessageId"].(string)
 			if replyID != "" {
 				// Fetch direct reply target
-				replySnap, err := docRef.Collection("messages").Doc(replyID).Get(ctx)
+				var rs *firestore.DocumentSnapshot
+				rs, err = docRef.Collection("messages").Doc(replyID).Get(ctx)
 				if err == nil {
-					rd := replySnap.Data()
+					rd := rs.Data()
 					rText, _ := rd["text"].(string)
 					rSender, _ := rd["agentName"].(string)
-					if rSender == "" { rSender = "ユーザー" }
+					if rSender == "" {
+						rSender = userSenderName
+					}
 					rTime, _ := rd["createdAt"].(time.Time)
 
 					aiReplyInfo = &ReplyContext{
@@ -270,13 +280,14 @@ func (h *TalkHandler) StartTalkStream(
 						OrderBy("createdAt", firestore.Desc).
 						Limit(1).
 						Documents(ctx)
-					prevDocs, err := prevIter.GetAll()
+					var prevDocs []*firestore.DocumentSnapshot
+					prevDocs, err = prevIter.GetAll()
 					if err == nil && len(prevDocs) > 0 {
 						pd := prevDocs[0].Data()
 						pText, _ := pd["text"].(string)
 						pSender, _ := pd["agentName"].(string)
 						if pSender == "" {
-							pSender = "ユーザー"
+							pSender = userSenderName
 						}
 						aiReplyInfo.PreviousContext = pText
 						replyContext = fmt.Sprintf("\n--- PRE-REPLY CONTEXT ---\n[%s]: %s", pSender, pText) + replyContext
@@ -338,7 +349,7 @@ func (h *TalkHandler) StartTalkStream(
 
 		_, err = docRef.Collection("messages").Doc(msgID).Set(ctx, msgData)
 		if err != nil {
-			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to save reply message: %v", err))
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to save reply message: %w", err))
 		}
 
 		if err := stream.Send(&apiv1.Message{
@@ -371,6 +382,8 @@ func (h *TalkHandler) StartTalkStream(
 		}
 
 		if textToEmbed != "" {
+			// #nosec G118: Request-scoped context is NOT used because embedding should finish even if client disconnects.
+			//nolint:contextcheck // バックグラウンドで実行するため、リクエストのctxではなくBackgroundを使用する。
 			go func(mID string, text string) {
 				bgCtx := context.Background()
 				emb, err := h.ai.EmbedText(bgCtx, text)
@@ -402,6 +415,7 @@ func (h *TalkHandler) StartTalkStream(
 	return nil
 }
 
+// StopTalkStream はトークの進行を強制停止します。
 func (h *TalkHandler) StopTalkStream(
 	ctx context.Context,
 	req *connect.Request[apiv1.StopTalkStreamRequest],
@@ -415,12 +429,13 @@ func (h *TalkHandler) StopTalkStream(
 		{Path: "status", Value: int64(apiv1.TalkStatus_TALK_STATUS_STOPPED)},
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stop talk: %v", err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to stop talk: %w", err))
 	}
 
 	return connect.NewResponse(&apiv1.StopTalkStreamResponse{}), nil
 }
 
+// AddAgent はトークに新しいAIエージェントを追加します。
 func (h *TalkHandler) AddAgent(
 	ctx context.Context,
 	req *connect.Request[apiv1.AddAgentRequest],
@@ -445,12 +460,13 @@ func (h *TalkHandler) AddAgent(
 		},
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to add agent: %v", err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to add agent: %w", err))
 	}
 
 	return connect.NewResponse(&apiv1.AddAgentResponse{}), nil
 }
 
+// RemoveAgent はトークからエージェントを削除します。
 func (h *TalkHandler) RemoveAgent(ctx context.Context, req *connect.Request[apiv1.RemoveAgentRequest]) (*connect.Response[apiv1.RemoveAgentResponse], error) {
 	talkID := req.Msg.TalkId
 	idx := int(req.Msg.AgentIndex)
@@ -480,12 +496,13 @@ func (h *TalkHandler) RemoveAgent(ctx context.Context, req *connect.Request[apiv
 		},
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to remove agent: %v", err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to remove agent: %w", err))
 	}
 
 	return connect.NewResponse(&apiv1.RemoveAgentResponse{}), nil
 }
 
+// UpdateAgent はトーク内のエージェントの設定を更新します。
 func (h *TalkHandler) UpdateAgent(ctx context.Context, req *connect.Request[apiv1.UpdateAgentRequest]) (*connect.Response[apiv1.UpdateAgentResponse], error) {
 	talkID := req.Msg.TalkId
 	idx := int(req.Msg.AgentIndex)
@@ -523,10 +540,54 @@ func (h *TalkHandler) UpdateAgent(ctx context.Context, req *connect.Request[apiv
 		},
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update agent: %v", err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update agent: %w", err))
 	}
 
 	return connect.NewResponse(&apiv1.UpdateAgentResponse{}), nil
 }
 
+// DeleteTalk は指定されたトークを削除します。
+func (h *TalkHandler) DeleteTalk(
+	ctx context.Context,
+	req *connect.Request[apiv1.DeleteTalkRequest],
+) (*connect.Response[apiv1.DeleteTalkResponse], error) {
+	uid, ok := middleware.GetUID(ctx)
+	if !ok {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("user not authenticated"))
+	}
+
+	talkID := req.Msg.TalkId
+	docRef := h.firestore.Collection("talks").Doc(talkID)
+
+	// 権限チェック
+	snap, err := docRef.Get(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("talk not found"))
+	}
+	if snap.Data()["ownerId"] != uid {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("not an owner of this talk"))
+	}
+	// メッセージサブコレクションの全ドキュメントを削除
+	msgIter := docRef.Collection("messages").Limit(500).Documents(ctx)
+	for {
+		doc, err := msgIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to list messages for deletion: %w", err))
+		}
+		if _, err := doc.Ref.Delete(ctx); err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete message: %w", err))
+		}
+	}
+
+	// 今回は親ドキュメントの削除のみ行う
+	_, err = docRef.Delete(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete talk: %w", err))
+	}
+
+	return connect.NewResponse(&apiv1.DeleteTalkResponse{}), nil
+}
 
