@@ -44,7 +44,7 @@ func (a *AIClient) GenerateResponse(ctx context.Context, name, role, topic strin
 【出力形式（JSONのみ）】
 {
   "message": "150文字程度の簡潔な新しいアイデアを含む発言内容",
-  "summary": "これまでの議論の全体的な要約（150文字程度）",
+  "summary": "これまでの議論でどんなアイデアが出たかの要約（150文字程度）",
   "ideas": [
     {"name": "アイデア名", "details": "今回の発言に含まれる具体的なアイデアの内容を50文字くらいで"}
   ]
