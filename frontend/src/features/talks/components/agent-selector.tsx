@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { User, Trash2, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import { cn } from '#/utils/ui/cn'
 
 export interface AgentPreset {
@@ -136,9 +136,10 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               <button
                 type="button"
                 onClick={() => onApplyPreset({ id: 'custom', name: '', description: '' })}
-                className="px-3 py-1.5 rounded-full bg-[#a3967d] text-white text-xs font-black transition-all hover:bg-[#7a6446]"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#fcfaf2]/50 border-2 border-dashed border-[#d5cba1] hover:border-[#ffcb05] hover:bg-[#fff9e6] text-xs font-black text-[#7a6446] transition-all"
               >
-                カスタム
+                <Pencil className="h-3 w-3" />
+                自分で入力
               </button>
             </div>
           </div>
