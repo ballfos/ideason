@@ -111,6 +111,7 @@ func (a *AIClient) GenerateResponse(ctx context.Context, name, role, topic strin
 	config := &genai.GenerateContentConfig{
 		Temperature:       genai.Ptr(float32(0.7)),
 		ResponseMIMEType:  "application/json",
+		MaxOutputTokens:   1024,
 		SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: systemInstruction}}},
 	}
 

@@ -70,9 +70,13 @@ export function MessageInput({
                     onCompositionStart={() => setIsComposing(true)}
                     onCompositionEnd={() => setIsComposing(false)}
                     placeholder={placeholder}
+                    maxLength={100}
                     className="w-full resize-none rounded-2xl border-2 border-[#d5cba1] bg-white px-4 py-2.5 text-sm font-bold text-[#7a6446] placeholder-[#c2baa6] focus:border-[#4b9635] focus:outline-none transition-colors"
                     style={{ minHeight: "44px", maxHeight: "120px" }}
                 />
+                <div className="absolute bottom-[-14px] right-2 text-[9px] font-black text-[#a3967d] opacity-50">
+                    {value.length}/100
+                </div>
             </div>
             <Button
                 size="icon"

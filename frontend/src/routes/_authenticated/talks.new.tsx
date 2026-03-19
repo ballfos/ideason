@@ -134,8 +134,12 @@ function RouteComponent() {
                 className="w-full bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 text-base md:text-lg font-black text-[#5a4a35] border-4 border-[#e8eed2] focus:outline-none focus:border-[#ffcb05] transition-all placeholder:text-[#c2baa6]/50 shadow-inner"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
+                maxLength={30}
                 required
               />
+              <div className="mt-1 text-right text-[10px] font-black text-[#a3967d] opacity-60">
+                {topic.length} / 30
+              </div>
             </div>
           </section>
 
