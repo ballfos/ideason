@@ -1,4 +1,4 @@
-import { useNavigate, createFileRoute, Link } from '@tanstack/react-router'
+import { useNavigate, createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useGuide } from '@/features/guide/GuideContext'
 import { talkClient } from '../../lib/api'
@@ -6,7 +6,7 @@ import { useAuth } from '@/features/auth/useAuth'
 import { Plus, Loader2, ArrowLeft } from 'lucide-react'
 import { AgentCard, AGENT_PRESETS, type AgentPreset } from '@/features/talks/components/agent-selector'
 import { PageGuide } from '#/components/ui/page-guide'
-import { cn } from '#/utils/ui/cn'
+import { Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/talks/new')({
   component: RouteComponent,
@@ -19,17 +19,12 @@ export const Route = createFileRoute('/_authenticated/talks/new')({
   }
 })
 
-export function RouteComponent() {
+function RouteComponent() {
   const { topic: searchTopic, presets: searchPresets, custom: searchCustom } = Route.useSearch()
   const [topic, setTopic] = useState(searchTopic || "")
   const { user } = useAuth()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isTouched, setIsTouched] = useState(false)
-
-  const isTopicTooLong = topic.length > 50
-  const isTopicEmpty = topic.trim() === ""
-  const showError = isTouched && (isTopicEmpty || isTopicTooLong)
 
   // Initialize with 3 agents (2 from presets + 1 custom/specific)
   const [selectedAgents, setSelectedAgents] = useState<AgentPreset[]>(() => {
@@ -51,26 +46,23 @@ export function RouteComponent() {
       baseAgents = AGENT_PRESETS.slice(0, 2).map(p => ({ ...p, id: Math.random().toString(36).slice(2, 11) }))
     }
 
-    // 3. Add Grandma agent as 3rd default
-    const grandma = AGENT_PRESETS.find(p => p.id === 'grandma')
-    let thirdAgent: AgentPreset = grandma 
-      ? { ...grandma, id: 'grandma-init' } 
-      : { id: 'custom-init', name: '', description: '' }
+    // 3. Add Custom agent (either from params or blank)
+    let customAgent: AgentPreset = { 
+        id: 'custom-init', 
+        name: 'カスタム', 
+        description: '役割を入力してください' 
+    }
 
-    // If searchCustom is provided, it overrides the default third agent with a blank custom one.
-    // This effectively removes the initial custom agent if a custom one was previously specified
-    // but we now want to start fresh with the grandma preset.
     if (searchCustom) {
       try {
         const parsed = JSON.parse(searchCustom) as { name: string; description: string }
-        thirdAgent = { ...parsed, id: 'custom-init' }
+        customAgent = { ...parsed, id: 'custom-init' }
       } catch (e) {
         console.error("Failed to parse search custom agent:", e)
-        thirdAgent = { id: 'custom-init', name: '', description: '' }
       }
     }
 
-    return [...baseAgents, thirdAgent]
+    return [...baseAgents.slice(0, 2), customAgent]
   })
   const [openAccordion, setOpenAccordion] = useState<string | null>(null)
   const { setSteps } = useGuide()
@@ -80,7 +72,7 @@ export function RouteComponent() {
       {
         targetId: 'step-topic',
         title: 'テーマを決める',
-        description: 'これから話し合いたいアイデアの題名を50文字以内で入力しましょう。'
+        description: 'これから話し合いたいアイデアの題名を30文字以内で入力しましょう。'
       },
       {
         targetId: 'step-members',
@@ -123,7 +115,7 @@ export function RouteComponent() {
   }
 
   const addAgent = () => {
-    const newAgent = { id: Math.random().toString(36).slice(2, 11), name: "", description: "" }
+    const newAgent = { id: Math.random().toString(36).slice(2, 11), name: "新しいエージェント", description: "役割を教えてね" }
     setSelectedAgents([...selectedAgents, newAgent])
     setOpenAccordion(newAgent.id)
   }
@@ -174,39 +166,17 @@ export function RouteComponent() {
               テーマを決める
             </h2>
             <div className="md:pl-11">
-              <div className="relative">
-                <input
-                  id="step-topic-input"
-                  type="text"
-                  placeholder="例) 新しいキャンプ用品のアイデア"
-                  className={cn(
-                    "w-full bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 text-base md:text-lg font-black text-[#5a4a35] border-4 transition-all placeholder:text-[#c2baa6]/50 shadow-inner",
-                    showError ? "border-red-400 focus:border-red-500" : "border-[#e8eed2] focus:outline-none focus:border-[#ffcb05]"
-                  )}
-                  value={topic}
-                  onChange={(e) => {
-                    setTopic(e.target.value)
-                    if (!isTouched) setIsTouched(true)
-                  }}
-                  onBlur={() => setIsTouched(true)}
-                  maxLength={100} // Allow typing a bit over 50 for the error effect
-                  required
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between">
-                <div className="text-[10px] font-black">
-                  {showError && (
-                    <span className="text-red-500 animate-pulse">
-                      {isTopicEmpty ? "!! テーマを入力してください" : "!! 50文字以内で入力してください"}
-                    </span>
-                  )}
-                </div>
-                <div className={cn(
-                  "text-[10px] font-black transition-colors",
-                  isTopicTooLong ? "text-red-500" : "text-[#a3967d] opacity-80"
-                )}>
-                  {topic.length} / 50
-                </div>
+              <input
+                type="text"
+                placeholder="例) 新しいキャンプ用品のアイデア"
+                className="w-full bg-white rounded-2xl px-5 py-3 md:px-6 md:py-4 text-base md:text-lg font-black text-[#5a4a35] border-4 border-[#e8eed2] focus:outline-none focus:border-[#ffcb05] transition-all placeholder:text-[#c2baa6]/50 shadow-inner"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                maxLength={30}
+                required
+              />
+              <div className="mt-1 text-right text-[10px] font-black text-[#a3967d] opacity-60">
+                {topic.length} / 30
               </div>
             </div>
           </section>
@@ -246,27 +216,9 @@ export function RouteComponent() {
 
           {/* Submission */}
           <div id="start-button-zone" className="pt-4 flex flex-col items-center">
-            {/* Validation Message Summary */}
-            <div className="mb-4 min-h-[1.5rem] text-center">
-              {(isTopicEmpty || isTopicTooLong || selectedAgents.length === 0 || selectedAgents.some(a => a.name.trim() === "" || a.description.trim() === "")) && (
-                <p className="text-[11px] md:text-xs font-black text-red-500 bg-red-50 px-4 py-2 rounded-full border-2 border-red-100 animate-in fade-in slide-in-from-bottom-2">
-                  {isTopicEmpty && "!! テーマを入力してください"}
-                  {!isTopicEmpty && isTopicTooLong && "!! テーマは50文字以内にしてください"}
-                  {!isTopicEmpty && !isTopicTooLong && selectedAgents.length === 0 && "!! メンバーを1人以上追加してください"}
-                  {!isTopicEmpty && !isTopicTooLong && selectedAgents.length > 0 && selectedAgents.some(a => a.name.trim() === "" || a.description.trim() === "") && "!! すべてのメンバーの名前と役割を入力してください"}
-                </p>
-              )}
-            </div>
-
             <button
               type="submit"
-              disabled={
-                isSubmitting || 
-                isTopicEmpty || 
-                isTopicTooLong || 
-                selectedAgents.length === 0 || 
-                selectedAgents.some(a => a.name.trim() === "" || a.description.trim() === "")
-              }
+              disabled={isSubmitting || !topic.trim() || selectedAgents.length === 0}
               className="w-full md:w-auto md:px-16 py-5 md:py-6 bg-[#ffcb05] text-[#7a6446] text-lg md:text-xl font-black rounded-2xl md:rounded-[24px] border-b-8 border-[#e6b800] hover:translate-y-[-2px] hover:border-b-[10px] active:translate-y-[4px] active:border-b-[2px] transition-all disabled:opacity-50 disabled:grayscale disabled:translate-y-0 disabled:border-b-8 shadow-[0_10px_30px_-10px_rgba(255,203,5,0.5)] overflow-hidden"
             >
               <div className="absolute inset-x-0 h-1 top-0 bg-white/20" />

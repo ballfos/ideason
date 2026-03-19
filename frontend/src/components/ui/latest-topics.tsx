@@ -12,7 +12,6 @@ interface Topic {
   iconBg: string
   presetAgentIds?: string[]
   customAgent?: { name: string; description: string }
-  type?: 'recommended' | 'latest'
 }
 
 
@@ -127,26 +126,23 @@ function TopicZone({ title, topics, zoneBg, borderColor, zoneBorder }: TopicZone
       </h2>
 
       <div className="flex flex-col items-center gap-3">
-        {topics.map((topic) => {
-          const isRecommended = topic.type === 'recommended';
-          return (
-            <Link
-              key={topic.id}
-              to={isRecommended ? "/talks/new" : "/talks/$talkId"}
-              params={isRecommended ? undefined : { talkId: topic.id }}
-              search={isRecommended ? {
-                  topic: topic.title, 
-                  presets: topic.presetAgentIds?.join(','),
-                  custom: topic.customAgent ? JSON.stringify(topic.customAgent) : undefined 
-              } : undefined}
-              className="group relative flex w-full max-w-full items-center gap-3 rounded-2xl bg-white p-3 border-t-[2px] border-b-[8px] border-x-[3px] transition-all duration-100 hover:brightness-[1.02] hover:bg-[color-mix(in_srgb,var(--theme-color),white_85%)] active:brightness-95 active:translate-y-[10px] active:shadow-none active:border-b-[2px] active:bg-[var(--theme-color)] active:mb-[6px] overflow-hidden"
-              style={{
-                borderColor: borderColor,
-                boxShadow: `0 4px 0 0 ${borderColor}`,
-                // @ts-ignore
-                '--theme-color': borderColor
-              }}
-            >
+        {topics.map((topic) => (
+          <Link
+            key={topic.id}
+            to="/talks/new"
+            search={{ 
+                topic: topic.title, 
+                presets: topic.presetAgentIds?.join(','),
+                custom: topic.customAgent ? JSON.stringify(topic.customAgent) : undefined 
+            }}
+            className="group relative flex w-full max-w-full items-center gap-3 rounded-2xl bg-white p-3 border-t-[2px] border-b-[8px] border-x-[3px] transition-all duration-100 hover:brightness-[1.02] hover:bg-[color-mix(in_srgb,var(--theme-color),white_85%)] active:brightness-95 active:translate-y-[10px] active:shadow-none active:border-b-[2px] active:bg-[var(--theme-color)] active:mb-[6px] overflow-hidden"
+            style={{
+              borderColor: borderColor,
+              boxShadow: `0 4px 0 0 ${borderColor}`,
+              // @ts-ignore
+              '--theme-color': borderColor
+            }}
+          >
 
             {/* アイコン（真円） */}
             <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${topic.iconBg} border-2 border-white shadow-sm`}>
@@ -169,7 +165,7 @@ function TopicZone({ title, topics, zoneBg, borderColor, zoneBorder }: TopicZone
               <span className="font-black mr-1 text-xl group-active:text-white" style={{ color: borderColor }}>{'>'}</span>
             </div>
           </Link>
-        )})}
+        ))}
       </div>
     </div>
   )
@@ -219,7 +215,6 @@ export function LatestTopics() {
         : 'まもなく開始',
     icon: (props) => <MessageSquare {...props} className="text-[#8c662d]" />,
     iconBg: 'bg-[#fcfaf2]',
-    type: 'latest'
   }))
 
   return (
@@ -240,7 +235,6 @@ export function RecommendedTopics() {
   const randomTopics = [...RECOMMENDED_TOPICS]
     .sort(() => Math.random() - 0.5)
     .slice(0, 3)
-    .map(t => ({ ...t, type: 'recommended' as const }))
 
   return (
     <div id="recommended-topics">
