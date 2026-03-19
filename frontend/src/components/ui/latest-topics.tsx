@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
-import { Leaf, Lightbulb, MessageSquare } from 'lucide-react'
+import { Leaf, Lightbulb, MessageSquare, Plus } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useTalks } from '@/features/talks'
+import { Button } from './button'
 
 interface Topic {
   id: string
@@ -10,29 +12,7 @@ interface Topic {
   iconBg: string
 }
 
-const LATEST_TOPICS: Topic[] = [
-  {
-    id: '1',
-    title: '今日のアイデア',
-    description: '新しい日常の発見を共有しましょう',
-    icon: (props) => <Lightbulb {...props} className="text-yellow-500" />,
-    iconBg: 'bg-yellow-50',
-  },
-  {
-    id: '2',
-    title: '村の掲示板',
-    description: 'みんなの声が集まる場所',
-    icon: (props) => <MessageSquare {...props} className="text-blue-500" />,
-    iconBg: 'bg-blue-50',
-  },
-  {
-    id: '3',
-    title: '自然との対話',
-    description: '心休まる風景について',
-    icon: (props) => <Leaf {...props} className="text-green-500" />,
-    iconBg: 'bg-green-50',
-  },
-]
+
 
 const RECOMMENDED_TOPICS: Topic[] = [
   {
@@ -116,10 +96,52 @@ function TopicZone({ title, topics, zoneBg, borderColor, zoneBorder }: TopicZone
 }
 
 export function LatestTopics() {
+  const { talks, loading } = useTalks()
+
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-[500px] lg:max-w-none bg-[#fcfaf2]/50 py-12 px-4 border-2 border-[#e8eed2] font-yusei text-center">
+        <p className="font-black text-[#5a4a35] opacity-50">読み込み中...🦌</p>
+      </div>
+    )
+  }
+
+  if (talks.length === 0) {
+    return (
+      <div className="mx-auto w-full max-w-[500px] lg:max-w-none bg-[#fcfaf2]/50 py-12 px-4 border-2 border-[#e8eed2] font-yusei flex flex-col items-center justify-center gap-6">
+        <h2 className="text-2xl font-black tracking-widest text-[#5a4a35]">最新のトピック</h2>
+        <div className="flex flex-col items-center gap-2 opacity-60">
+            <Lightbulb className="h-10 w-10 text-[#dbe3c6]" />
+            <p className="text-sm font-bold text-[#7a6446]">履歴がまだありません</p>
+        </div>
+        <Link 
+            to="/talks/new"
+            className="w-full max-w-[280px]"
+        >
+            <Button variant="yellow" className="w-full py-6 text-lg shadow-md rounded-2xl group">
+                <Plus className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform" />
+                トークをはじめる!!
+            </Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // 最新3件を表示するように変換
+  const latestTalks: Topic[] = talks.slice(0, 3).map((talk) => ({
+    id: talk.id,
+    title: talk.topic || '無題のトーク',
+    description: talk.updatedAt 
+        ? `${new Date(talk.updatedAt.seconds * 1000).toLocaleString('ja-JP')} に更新`
+        : 'まもなく開始',
+    icon: (props) => <MessageSquare {...props} className="text-[#8c662d]" />,
+    iconBg: 'bg-[#fcfaf2]',
+  }))
+
   return (
     <TopicZone
       title="最新のトピック"
-      topics={LATEST_TOPICS}
+      topics={latestTalks}
       zoneBg="bg-[#fcfaf2]/50"
       zoneBorder="border-[#e8eed2]"
       borderColor="#d5cba1"
