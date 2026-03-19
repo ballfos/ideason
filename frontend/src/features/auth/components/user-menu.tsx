@@ -39,8 +39,8 @@ export const UserMenu = () => {
   return (
     <div className="relative" ref={menuRef}>
       <button
-        onClick={() => { setIsOpen(!isOpen); }}
-        className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-white/20 text-white transition-all active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white border-2 border-transparent hover:border-white/50 shadow-sm"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-white border-2 border-[#d5cba1] text-[#7a6446] hover:bg-[#ffcb05] hover:border-[#ffcb05] hover:text-white transition-all active:scale-95"
         aria-label="ユーザーメニューを開く"
       >
         {user.photoURL ? (
