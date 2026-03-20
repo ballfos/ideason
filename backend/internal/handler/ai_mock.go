@@ -10,10 +10,12 @@ import (
 type MockAIClient struct {
 	GenerateResponseFn     func(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error)
 	UpdateTalkWhiteboardFn func(ctx context.Context, docRef *firestore.DocumentRef, summary string, ideas []interface{})
+	GenerateEmojiFn        func(ctx context.Context, topic string) (string, error)
 	EmbedTextFn            func(ctx context.Context, text string) ([]float32, error)
 
 	GenerateResponseCalled     bool
 	UpdateTalkWhiteboardCalled bool
+	GenerateEmojiCalled        bool
 	EmbedTextCalled            bool
 }
 
@@ -36,6 +38,15 @@ func (m *MockAIClient) UpdateTalkWhiteboard(ctx context.Context, docRef *firesto
 	if m.UpdateTalkWhiteboardFn != nil {
 		m.UpdateTalkWhiteboardFn(ctx, docRef, summary, ideas)
 	}
+}
+
+// GenerateEmoji はテスト用のモック実装です。
+func (m *MockAIClient) GenerateEmoji(ctx context.Context, topic string) (string, error) {
+	m.GenerateEmojiCalled = true
+	if m.GenerateEmojiFn != nil {
+		return m.GenerateEmojiFn(ctx, topic)
+	}
+	return "🦌", nil
 }
 
 // EmbedText はテスト用のモック実装です。

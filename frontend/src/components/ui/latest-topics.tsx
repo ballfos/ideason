@@ -217,8 +217,8 @@ export function LatestTopics() {
   // 最新3件を表示するように変換
   const latestTalks: Topic[] = talks.slice(0, 3).map((talk) => ({
     description: `${new Date(talk.updatedAt.seconds * 1000).toLocaleString('ja-JP')} に更新`,
-    icon: (props) => <MessageSquare {...props} className="text-[#8c662d]" />,
-    iconBg: 'bg-[#fcfaf2]',
+    icon: () => talk.emojiIcon ? <span className="text-xl leading-none">{talk.emojiIcon}</span> : <MessageSquare className="text-[#8c662d] h-5 w-5" />,
+    iconBg: talk.emojiIcon ? 'bg-transparent border-0' : 'bg-[#fcfaf2]',
     id: talk.id,
     title: talk.topic || '無題のトーク',
     type: 'latest'

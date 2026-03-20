@@ -56,10 +56,17 @@ func (h *TalkHandler) CreateTalk(
 		})
 	}
 
+	// Generate emoji icon based on topic
+	emojiIcon, _ := h.ai.GenerateEmoji(ctx, req.Msg.Topic)
+	if emojiIcon == "" {
+		emojiIcon = "🦌" // Default
+	}
+
 	// Firestore data
 	data := map[string]interface{}{
 		"ownerId":   uid,
 		"topic":     req.Msg.Topic,
+		"emojiIcon": emojiIcon,
 		"status":    int64(apiv1.TalkStatus_TALK_STATUS_STOPPED),
 		"createdAt": now,
 		"updatedAt": now,
@@ -71,23 +78,13 @@ func (h *TalkHandler) CreateTalk(
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to save talk: %w", err))
 	}
-	// Implement `StartTalkStream`:
-	// - Validate user authentication.
-	// - Check current talk status and `last_heartbeat`. Ignore if `RUNNING` and `last_heartbeat` < 20s ago.
-	// - Update talk to `status=RUNNING`, `remaining_count=4`, `last_heartbeat=now`.
-	// - Enter a loop:
-	//     - Use a ticker or periodic check (e.g., every 1s) to monitor Firestore `status` and `ctx.Done()` for immediate cancellation.
-	//     - Generate dummy message (4s total wait, but check cancellation periodically).
-	//     - Save message to Firestore sub-collection `messages`.
-	//     - Stream message to client.
-	//     - Update `remaining_count` and `last_heartbeat` in Firestore.
-	//     - Exit immediately if `ctx.Done()` is closed, `remaining_count` reached 0, or Firestore `status` becomes `STOPPED`.
 
 	// Create the response talk object
 	talk := &apiv1.Talk{
 		Id:        id,
 		OwnerId:   uid,
 		Topic:     req.Msg.Topic,
+		EmojiIcon: emojiIcon,
 		CreatedAt: timestamppb.New(now),
 		UpdatedAt: timestamppb.New(now),
 	}
