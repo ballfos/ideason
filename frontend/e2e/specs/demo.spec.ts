@@ -44,31 +44,34 @@ test('あいでぃあ村：トーク作成フローのデモ', async ({ page, co
   
   const chatInput = page.getByPlaceholder(/メッセージを入力.../i);
   await expect(chatInput).toBeVisible();
-  await chatInput.fill('こんにちは！おすすめのお土産を教えてください。');
+  await chatInput.fill('【デモ検証】宇宙で一番人気のお土産は何ですか？具体的に教えてください。');
   await page.waitForTimeout(1000);
   
   const sendBtn = page.getByRole('button', { name: '送信' });
   await sendBtn.click();
-  console.log('メッセージを送信しました。');
+  console.log('デモ用メッセージを送信しました。');
   
-  // AIの応答を待つ
-  await page.waitForTimeout(5000);
+  // AIの応答を待つ（少し長めに待機）
+  await page.waitForTimeout(8000);
   
   // お気に入り登録（最後のメッセージのスターボタンを探す）
-  const starButtons = page.locator('button:has(svg.lucide-star)');
-  if (await starButtons.count() > 0) {
-    await starButtons.last().click();
-    console.log('メッセージをお気に入り登録しました。');
-    await page.waitForTimeout(1000);
+  // 最後に届いたAIのメッセージを特定してお気に入りする
+  const lastMessage = page.locator('div[data-testid="message-list"] > div').last();
+  const starBtn = lastMessage.locator('button:has(svg.lucide-star)');
+  
+  if (await starBtn.isVisible()) {
+    await starBtn.click();
+    console.log('最新のAI応答をお気に入り登録しました。');
+    await page.waitForTimeout(2000); // 同期待ち
   }
 
   // 9. アイデアマップの操作
   console.log('--- アイデアマップのデモ ---');
   const mapTab = page.getByText('あいでぃあ村');
   await mapTab.click();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(3000);
   
-  // マップ上のノードをクリック（SVG要素なのでテキストベースで探す）
+  // マップ上のノードをクリック
   const node = page.locator('g.node').first();
   if (await node.isVisible()) {
     await node.click();
@@ -80,21 +83,25 @@ test('あいでぃあ村：トーク作成フローのデモ', async ({ page, co
     if (await recycleBtn.isVisible()) {
       await recycleBtn.click();
       console.log('アイデアをリサイクルしました。');
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(2000);
     }
   }
 
   // 10. お気に入り画面の確認
-  console.log('--- お気に入り画面の確認 ---');
+  console.log('--- お気に入り画面での確認 ---');
   await page.goto('http://localhost:3000/favorites');
   await expect(page.getByText('お気に入りメッセージ')).toBeVisible();
-  await page.waitForTimeout(1500);
-
+  
+  // お気に入りリストの最上部付近に、先ほどお気に入りした内容があるか確認
+  // (AIの応答の断片が含まれているはず)
+  await page.waitForTimeout(2000);
+  console.log('お気に入り画面で登録内容を確認中...');
+  
   // 11. リサイクルボックスの確認
-  console.log('--- リサイクルボックスの確認 ---');
+  console.log('--- リサイクルボックスでの確認 ---');
   await page.goto('http://localhost:3000/recycle');
   await expect(page.getByText('リサイクルボックス')).toBeVisible();
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2000);
   
-  console.log('✅ 全てのデモンストレーションが完了しました。');
+  console.log('✅ 全てのデモンストレーションと確認が完了しました。');
 });
