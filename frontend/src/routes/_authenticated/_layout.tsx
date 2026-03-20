@@ -34,7 +34,7 @@ function RouteComponent() {
 
       <div className="flex flex-1 flex-col min-[451px]:pl-24">
         <Header
-          className="rounded-none border-b-2 bg-white from-transparent to-transparent shadow-none"
+          className="rounded-none border-0 bg-white from-transparent to-transparent shadow-none"
           titleClassName="text-[#5a4a35] drop-shadow-none"
           userAction={<UserMenu />}
           helpGuide={steps.length > 0 ? <PageGuide steps={steps} /> : null}
