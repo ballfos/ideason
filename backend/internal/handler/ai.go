@@ -13,7 +13,7 @@ import (
 
 // AIGenerator はAIによる応答生成とホワイトボード更新のインターフェースです。
 type AIGenerator interface {
-	GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error)
+	GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, userInstruction string, reply *ReplyContext) (map[string]interface{}, error)
 	//nolint:contextcheck // 内部でUpdateを呼び出しているが、引数のctxを正しく渡しているため。
 	UpdateTalkWhiteboard(ctx context.Context, docRef *firestore.DocumentRef, summary string, ideas []interface{})
 	GenerateEmoji(ctx context.Context, topic string) (string, error)
@@ -56,7 +56,7 @@ func (a *AIClient) Close() error {
 }
 
 // GenerateResponse は Gemini モデルを使用して対話の応答を生成します。
-func (a *AIClient) GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error) {
+func (a *AIClient) GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, userInstruction string, reply *ReplyContext) (map[string]interface{}, error) {
 	modelName := "gemini-2.5-flash"
 
 	whiteboardJSON, _ := json.MarshalIndent(whiteboard, "", "  ")
@@ -121,6 +121,10 @@ func (a *AIClient) GenerateResponse(ctx context.Context, name, role, topic strin
 
 	if reply != nil {
 		prompt += fmt.Sprintf("\n【特定のリプライ先】\n対象発言: %s (%s)\nさらに遡った文脈: %s\n", reply.ReplyTargetText, reply.ReplyTargetSender, reply.PreviousContext)
+	}
+
+	if userInstruction != "" {
+		prompt += fmt.Sprintf("\n【最重要指示】\n%s\n\n※ 上記の指示に則った回答を必ずしてください。\n", userInstruction)
 	}
 
 	prompt += "\n上記の文脈を踏まえて、あなたの役割として発言し、今回の発言内容に基づいたJSON（message, summary, ideas）を出力してください。\n既存のアイデアと重複しない、全く新しい切り口のアイデアを提案してください。"

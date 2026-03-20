@@ -321,6 +321,7 @@ func (h *TalkHandler) StartTalkStream(
 		}
 
 		recentContext := ""
+		userInstruction := ""
 		for i, m := range combined {
 			msgText := m.Text
 			// Format the very last message specially if it's a reply
@@ -328,7 +329,12 @@ func (h *TalkHandler) StartTalkStream(
 				msgText = fmt.Sprintf("「%s」に対して「%s」", aiReplyInfo.ReplyTargetText, m.Text)
 				aiReplyInfo.ReplyText = m.Text // Update the actual reply text for the refined system prompt
 			}
-			recentContext += fmt.Sprintf("[%s]: %s\n", m.Sender, msgText)
+
+			if m.Sender == userSenderName {
+				userInstruction = msgText
+			} else {
+				recentContext += fmt.Sprintf("[%s]: %s\n", m.Sender, msgText)
+			}
 		}
 
 		if replyContext != "" {
@@ -337,7 +343,7 @@ func (h *TalkHandler) StartTalkStream(
 		}
 
 		// AI Response
-		aiRes, err := h.ai.GenerateResponse(streamCtx, agentName, agentDesc, topic, whiteboard, recentContext, aiReplyInfo)
+		aiRes, err := h.ai.GenerateResponse(streamCtx, agentName, agentDesc, topic, whiteboard, recentContext, userInstruction, aiReplyInfo)
 		if err != nil {
 			if streamCtx.Err() != nil {
 				return nil
