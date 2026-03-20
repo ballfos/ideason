@@ -8,7 +8,7 @@ import (
 
 // MockAIClient is a mock implementation of AIGenerator for testing
 type MockAIClient struct {
-	GenerateResponseFn     func(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error)
+	GenerateResponseFn     func(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, userInstruction string, reply *ReplyContext) (map[string]interface{}, error)
 	UpdateTalkWhiteboardFn func(ctx context.Context, docRef *firestore.DocumentRef, summary string, ideas []interface{})
 	GenerateEmojiFn        func(ctx context.Context, topic string) (string, error)
 	EmbedTextFn            func(ctx context.Context, text string) ([]float32, error)
@@ -20,10 +20,10 @@ type MockAIClient struct {
 }
 
 // GenerateResponse はテスト用のモック実装です。
-func (m *MockAIClient) GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error) {
+func (m *MockAIClient) GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, userInstruction string, reply *ReplyContext) (map[string]interface{}, error) {
 	m.GenerateResponseCalled = true
 	if m.GenerateResponseFn != nil {
-		return m.GenerateResponseFn(ctx, name, role, topic, whiteboard, recentContext, reply)
+		return m.GenerateResponseFn(ctx, name, role, topic, whiteboard, recentContext, userInstruction, reply)
 	}
 	return map[string]interface{}{
 		"message": "Mock response",
