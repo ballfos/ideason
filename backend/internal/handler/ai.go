@@ -16,6 +16,7 @@ type AIGenerator interface {
 	GenerateResponse(ctx context.Context, name, role, topic string, whiteboard map[string]interface{}, recentContext string, reply *ReplyContext) (map[string]interface{}, error)
 	//nolint:contextcheck // 内部でUpdateを呼び出しているが、引数のctxを正しく渡しているため。
 	UpdateTalkWhiteboard(ctx context.Context, docRef *firestore.DocumentRef, summary string, ideas []interface{})
+	GenerateEmoji(ctx context.Context, topic string) (string, error)
 	EmbedText(ctx context.Context, text string) ([]float32, error)
 }
 
@@ -203,4 +204,41 @@ func (a *AIClient) EmbedText(ctx context.Context, text string) ([]float32, error
 		}
 		return res.Embeddings[0].Values, nil
 	}
+}
+// GenerateEmoji はお題に合わせた絵文字を一つ生成します。
+func (a *AIClient) GenerateEmoji(ctx context.Context, topic string) (string, error) {
+	modelName := "gemini-2.0-flash-lite"
+
+	systemInstruction := "与えられたお題に最もふさわしい絵文字を【一つだけ】出力してください。説明や装飾は一切不要です。"
+	prompt := fmt.Sprintf("お題: %s", topic)
+
+	config := &genai.GenerateContentConfig{
+		Temperature:       genai.Ptr(float32(1.0)),
+		MaxOutputTokens:   10,
+		SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: systemInstruction}}},
+	}
+
+	resp, err := a.client.Models.GenerateContent(ctx, modelName, []*genai.Content{{Parts: []*genai.Part{{Text: prompt}}, Role: "user"}}, config)
+	if err != nil {
+		fmt.Printf("Emoji generation error for %s: %v\n", modelName, err)
+		// Fallback to flash if lite fails or not available
+		resp, err = a.client.Models.GenerateContent(ctx, "gemini-2.5-flash-lite", []*genai.Content{{Parts: []*genai.Part{{Text: prompt}}, Role: "user"}}, config)
+		if err != nil {
+			fmt.Printf("Emoji generation fallback error: %v\n", err)
+			return "🦌", nil // Defaut fallack
+		}
+	}
+
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+		fmt.Printf("Emoji generation returned no candidates\n")
+		return "🦌", nil
+	}
+
+	emoji := strings.TrimSpace(resp.Text())
+	// Ensure it's not too long (just in case)
+	if len([]rune(emoji)) > 5 {
+		emoji = string([]rune(emoji)[0:1])
+	}
+
+	return emoji, nil
 }
