@@ -60,6 +60,7 @@ function RecyclePage() {
                 </div>
                 <Button
                     variant="yellow"
+                    disabled={recycledIdeas.length == 0}
                     onClick={() => { void fetchRecycled(); }}
                     className="flex items-center gap-2 rounded-2xl shadow-md"
                 >

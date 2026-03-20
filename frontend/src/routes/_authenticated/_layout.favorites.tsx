@@ -39,10 +39,18 @@ function FavoritesPage() {
         void fetchFavorites()
     }, [])
 
+    // <h1 className="text-3xl font-black tracking-widest text-[#5a4a35] flex items-center gap-3">
+    //     <Box className="text-[#a48862]" size={36} />
+    //     リサイクルボックス
+    // </h1>
+    // <p className="mt-2 text-[#8e8571] font-bold text-sm">
+    //     誰かが手放したアイデアの「かけら」たちが集まる場所です。
+    // </p>
     return (
         <div className="p-4 max-w-4xl mx-auto min-h-screen font-yusei">
             <div className="mb-8 font-yusei">
-                <h1 className="text-2xl font-black tracking-widest text-[#5a4a35]">
+                <h1 className="text-3xl font-black tracking-widest text-[#5a4a35] flex items-center gap-3">
+                    <Star className="fill-current text-[#ffcb05]" size={36} />
                     お気に入りメッセージ
                 </h1>
             </div>
