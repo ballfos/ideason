@@ -25,7 +25,7 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   }
 })
 
-vi.mock("@/features/auth/useAuth", () => ({
+vi.mock("@/features/auth/use-auth", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }))
 
@@ -35,21 +35,45 @@ vi.mock("@/lib/api", () => ({
   },
 }))
 
-vi.mock("@/features/guide/GuideContext", () => ({
+vi.mock("@/features/guide/guide-context", () => ({
   useGuide: () => ({ setSteps: mockSetSteps, steps: [] }),
 }))
 
-// その他の UI コンポーネントをモック
-vi.mock("lucide-react", () => ({
-  ArrowLeft: () => <span />, ChevronDown: () => <span />, ChevronUp: () => <span />,
-  HelpCircle: () => <span />, Leaf: () => <span />, Lightbulb: () => <span />,
-  Loader2: () => <span />, MessageSquare: () => <span />,
-  Plus: () => <span />, Trash2: () => <span />, User: () => <span />,
-}))
-vi.mock("@/components/ui/page-guide", () => ({ PageGuide: () => <div /> }))
-vi.mock("#/components/ui/page-guide", () => ({ PageGuide: () => <div /> }))
+// 最小限のモック
+vi.mock("lucide-react", () => {
+  const MockIcon = (name: string) => ({ children, ...props }: any) => <span data-icon={name.toLowerCase()} {...props}>{children}</span>;
+  return {
+    Monitor: MockIcon("Monitor"),
+    CakeSlice: MockIcon("CakeSlice"),
+    Brush: MockIcon("Brush"),
+    Candy: MockIcon("Candy"),
+    Calculator: MockIcon("Calculator"),
+    Hamburger: MockIcon("Hamburger"),
+    Building: MockIcon("Building"),
+    Smile: MockIcon("Smile"),
+    Heart: MockIcon("Heart"),
+    Crown: MockIcon("Crown"),
+    ChevronDown: MockIcon("ChevronDown"),
+    ChevronUp: MockIcon("ChevronUp"),
+    Trash2: MockIcon("Trash2"),
+    User: MockIcon("User"),
+    X: MockIcon("X"),
+    Plus: MockIcon("Plus"),
+    Loader2: MockIcon("Loader2"),
+    ArrowLeft: MockIcon("ArrowLeft"),
+    HelpCircle: MockIcon("HelpCircle"),
+    MessageSquare: MockIcon("MessageSquare"),
+    Leaf: MockIcon("Leaf"),
+    Lightbulb: MockIcon("Lightbulb"),
+    Pencil: MockIcon("Pencil"),
+  };
+})
+
 vi.mock("@/features/talks/components/agent-selector", () => ({
-  AGENT_PRESETS: [{ description: 'desc', id: 'engineer', name: '若手エンジニア', icon: 'monitor' }],
+  AGENT_PRESETS: [
+    { description: 'desc', id: 'engineer', name: '若手エンジニア', icon: 'monitor' },
+    { description: 'desc', id: 'grandma', name: 'おばあちゃん', icon: 'heart' },
+  ],
   AgentCard: () => <div />
 }))
 
@@ -59,12 +83,12 @@ describe("TalksNew テーマ文字数検証 (100文字)", () => {
     mockUseSearch.mockReturnValue({ custom: "", presets: "engineer", topic: "" })
   })
 
-  it("テーマ入力の maxLength が 100 で、カウント表示も 100 であること", () => {
+  it("テーマ入力の maxLength は 100 (演出用) で、表示上の制限は 50 であること", () => {
     render(<RouteComponent />)
     const topicInput = screen.getByPlaceholderText(/例\) 新しいキャンプ用品/i)
     expect(topicInput).toHaveAttribute("maxLength", "100")
 
     fireEvent.change(topicInput, { target: { value: "テスト" } })
-    expect(screen.getByText("3 / 100")).toBeInTheDocument()
+    expect(screen.getByText("3 / 50")).toBeInTheDocument()
   })
 })

@@ -40,7 +40,9 @@ test('あいでぃあ村：トーク作成フローのデモ', async ({ page, co
 
   // 8. チャット画面でのインタラクション
   console.log('--- チャット操作のデモ ---');
-  await page.waitForTimeout(3000); // ロード待ち
+  await page.waitForURL(/\/talks\/.+/);
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(2000); // UIのアニメーション待ち
   
   const chatInput = page.getByPlaceholder(/メッセージを入力.../i);
   await expect(chatInput).toBeVisible();

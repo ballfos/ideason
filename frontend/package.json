@@ -10,6 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:pbt": "vitest run -t PBT",
+    "test:e2e": "playwright test",
     "lint": "eslint src --fix"
   },
   "dependencies": {

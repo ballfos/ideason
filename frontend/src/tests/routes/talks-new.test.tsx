@@ -22,7 +22,7 @@ vi.mock("@/lib/api", () => ({
 vi.mock("@/features/auth", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }))
-vi.mock("@/features/auth/useAuth", () => ({
+vi.mock("@/features/auth/use-auth", () => ({
   useAuth: () => ({ user: { uid: "test-user" } }),
 }))
 
@@ -40,29 +40,48 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   }
 })
 
-vi.mock("@/features/guide/GuideContext", () => ({
+vi.mock("@/features/guide/guide-context", () => ({
   useGuide: () => ({ setSteps: mockSetSteps, steps: [] }),
 }))
 
-vi.mock("lucide-react", () => ({
-  ArrowLeft: () => <span />,
-  ChevronDown: () => <span />,
-  ChevronUp: () => <span />,
-  Leaf: () => <span />,
-  Lightbulb: () => <span />,
-  Loader2: () => <span />,
-  MessageSquare: () => <span />,
-  Plus: () => <span />,
-  Trash2: () => <span />,
-  User: () => <span />,
-}))
+vi.mock("lucide-react", () => {
+  const MockIcon = (name: string) => ({ children, ...props }: any) => <span data-icon={name.toLowerCase()} {...props}>{children}</span>;
+  return {
+    Monitor: MockIcon("Monitor"),
+    CakeSlice: MockIcon("CakeSlice"),
+    Brush: MockIcon("Brush"),
+    Candy: MockIcon("Candy"),
+    Calculator: MockIcon("Calculator"),
+    Hamburger: MockIcon("Hamburger"),
+    Building: MockIcon("Building"),
+    Smile: MockIcon("Smile"),
+    Heart: MockIcon("Heart"),
+    Crown: MockIcon("Crown"),
+    ChevronDown: MockIcon("ChevronDown"),
+    ChevronUp: MockIcon("ChevronUp"),
+    Trash2: MockIcon("Trash2"),
+    User: MockIcon("User"),
+    X: MockIcon("X"),
+    Plus: MockIcon("Plus"),
+    Loader2: MockIcon("Loader2"),
+    ArrowLeft: MockIcon("ArrowLeft"),
+    HelpCircle: MockIcon("HelpCircle"),
+    MessageSquare: MockIcon("MessageSquare"),
+    Leaf: MockIcon("Leaf"),
+    Lightbulb: MockIcon("Lightbulb"),
+    Pencil: MockIcon("Pencil"),
+  };
+})
 
 // エイリアス解決のために両方モック
 vi.mock("@/components/ui/page-guide", () => ({ PageGuide: () => <div /> }))
 vi.mock("#/components/ui/page-guide", () => ({ PageGuide: () => <div /> }))
 
 vi.mock("@/features/talks/components/agent-selector", () => ({
-  AGENT_PRESETS: [{ description: 'desc', id: 'engineer', name: '若手エンジニア', icon: 'monitor' }],
+  AGENT_PRESETS: [
+    { description: 'desc', id: 'engineer', name: '若手エンジニア', icon: 'monitor' },
+    { description: 'desc', id: 'grandma', name: 'おばあちゃん', icon: 'heart' },
+  ],
   AgentCard: ({ agent, onToggle }: { agent: { name: string }; onToggle: () => void }) => <div onClick={onToggle}>{agent.name}</div>
 }))
 
@@ -87,7 +106,7 @@ describe("TalksNew バリデーションテスト", () => {
     // テーマ入力で活性化
     fireEvent.change(topicInput, { target: { value: "AIの未来" } })
     expect(submitButton).not.toBeDisabled()
-    expect(screen.getByText("5 / 30")).toBeInTheDocument()
-    expect(topicInput).toHaveAttribute("maxLength", "30")
+    expect(screen.getByText("5 / 50")).toBeInTheDocument()
+    expect(topicInput).toHaveAttribute("maxLength", "100")
   })
 })

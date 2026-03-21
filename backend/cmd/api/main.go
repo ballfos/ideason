@@ -91,6 +91,7 @@ func run() error {
 			"X-Grpc-Web",
 			"Grpc-Timeout",
 			"X-User-Agent",
+			"X-E2E-Auth-Bypass",
 		},
 		ExposedHeaders:   []string{"Grpc-Status", "Grpc-Message", "Grpc-Status-Details-Bin"},
 		AllowCredentials: true,

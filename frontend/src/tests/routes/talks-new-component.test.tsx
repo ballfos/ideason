@@ -3,15 +3,34 @@ import { render, screen } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
 import "@testing-library/jest-dom/vitest"
 
-import { AgentCard } from "@/features/talks/components/agent-selector"
-
 // 最小限のモック
-vi.mock("lucide-react", () => ({
-  ChevronDown: () => <span />,
-  ChevronUp: () => <span />,
-  Trash2: () => <span />,
-  User: () => <span />,
-}))
+vi.mock("lucide-react", () => {
+  const MockIcon = (name: string) => ({ children, ...props }: any) => <span data-icon={name} {...props}>{children}</span>;
+  return {
+    Monitor: MockIcon("Monitor"),
+    CakeSlice: MockIcon("CakeSlice"),
+    Brush: MockIcon("Brush"),
+    Candy: MockIcon("Candy"),
+    Calculator: MockIcon("Calculator"),
+    Hamburger: MockIcon("Hamburger"),
+    Building: MockIcon("Building"),
+    Smile: MockIcon("Smile"),
+    Heart: MockIcon("Heart"),
+    Crown: MockIcon("Crown"),
+    ChevronDown: MockIcon("ChevronDown"),
+    ChevronUp: MockIcon("ChevronUp"),
+    Trash2: MockIcon("Trash2"),
+    User: MockIcon("User"),
+    X: MockIcon("X"),
+    Plus: MockIcon("Plus"),
+    Loader2: MockIcon("Loader2"),
+    ArrowLeft: MockIcon("ArrowLeft"),
+    HelpCircle: MockIcon("HelpCircle"),
+    Pencil: MockIcon("Pencil"),
+  };
+})
+
+import { AgentCard } from "@/features/talks/components/agent-selector"
 
 describe("AgentCard バリデーションテスト", () => {
   const mockAgent = {
