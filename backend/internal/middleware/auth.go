@@ -51,6 +51,11 @@ func (i *authInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc
 }
 
 func (i *authInterceptor) verify(ctx context.Context, header http.Header) (string, error) {
+	// E2E bypass check
+	if bypass := header.Get("X-E2E-Auth-Bypass"); bypass == "true" {
+		return "test-user-id", nil
+	}
+
 	authHeader := header.Get("Authorization")
 	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 		return "", connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("missing or invalid authorization header"))

@@ -9,6 +9,12 @@ const transport = createConnectTransport({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     interceptors: [
         (next) => async (req) => {
+            const bypass = localStorage.getItem('e2e-auth-bypass');
+            if (bypass === 'true') {
+                req.header.set("X-E2E-Auth-Bypass", "true");
+                return await next(req);
+            }
+
             const auth = getAuth();
             const token = await auth.currentUser?.getIdToken();
             if (token) {

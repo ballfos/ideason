@@ -49,9 +49,9 @@ interface AgentIconProps {
 }
 
 export function AgentIcon({ iconName, agentName, className, size = 20, ...props }: AgentIconProps) {
-  const resolvedIconName = iconName || (agentName ? NAME_TO_ICON_MAP[agentName] : undefined);
+  const resolvedIconName = iconName || (agentName && Object.prototype.hasOwnProperty.call(NAME_TO_ICON_MAP, agentName) ? NAME_TO_ICON_MAP[agentName] : undefined);
   
-  if (resolvedIconName && /\p{Emoji}/u.test(resolvedIconName) && !ICON_MAP[resolvedIconName.toLowerCase()]) {
+  if (typeof resolvedIconName === 'string' && /\p{Emoji}/u.test(resolvedIconName) && !ICON_MAP[resolvedIconName.toLowerCase()]) {
     return (
       <span 
         className={cn("flex items-center justify-center font-normal leading-none select-none", className)}
@@ -63,7 +63,7 @@ export function AgentIcon({ iconName, agentName, className, size = 20, ...props 
     );
   }
 
-  const IconComponent = resolvedIconName ? ICON_MAP[resolvedIconName.toLowerCase()] : null;
+  const IconComponent = typeof resolvedIconName === 'string' ? ICON_MAP[resolvedIconName.toLowerCase()] : null;
 
   if (IconComponent) {
     return <IconComponent className={cn("text-[#7a6446]", className)} size={size} {...props} />;
